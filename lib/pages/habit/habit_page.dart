@@ -5,7 +5,7 @@ import 'package:muslim_journey/pages/habit/calendar_habit_page.dart';
 import 'package:muslim_journey/pages/home/home_page.dart';
 import 'package:muslim_journey/pages/notification/notification_page.dart';
 import 'package:muslim_journey/pages/profile/profile_page.dart';
-import 'package:muslim_journey/pages/target/add_target_page.dart';
+import 'package:muslim_journey/pages/habit/add_target_page.dart';
 import 'package:muslim_journey/pages/target/data/target_data.dart';
 import 'package:muslim_journey/pages/target/target_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';

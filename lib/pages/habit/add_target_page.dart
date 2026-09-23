@@ -562,7 +562,8 @@ class _AddTargetPageState extends State<AddTargetPage> {
         title: const Text(
           'Tambah Habit',
           style: TextStyle(
-            color: AppColors.primary,
+            color: AppColors.black,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
