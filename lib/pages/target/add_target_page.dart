@@ -548,6 +548,16 @@ class _AddTargetPageState extends State<AddTargetPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: AppColors.primary,
+            size: 24,
+          ),
+        ),
         centerTitle: true,
         title: const Text(
           'Tambah Habit',
