@@ -57,9 +57,6 @@ class _DzikirDetailPageState extends State<DzikirDetailPage> {
   }
 
   //
-
-  //
-
   void toggleAuto() {
     if (isAuto) {
       autoTimer?.cancel();
