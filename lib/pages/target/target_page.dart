@@ -186,7 +186,7 @@ class _TargetPageState extends State<TargetPage> {
         title: const Text(
           'Target Ibadah',
           style: TextStyle(
-            color: AppColors.primary,
+            color: AppColors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),

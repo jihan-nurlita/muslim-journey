@@ -289,7 +289,10 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
         leading: Padding(
           padding: const EdgeInsets.only(left: 12.0),
           child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: AppColors.primary,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ),
