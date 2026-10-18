@@ -27,8 +27,6 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
   static const primaryGreen = Color(0xFF1E5E3A); // Hijau Tua (Tanggal Dipilih)
   static const lightGreen = Color(0xFFE8F5E9);
   static const accentGold = Color(0xFFD4AF37);
-  static const darkText = Color(0xFF1F2937);
-  static const subText = Color(0xFF6B7280);
 
   Future<void> loadCalendar() async {
     try {
@@ -110,10 +108,22 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Warna adaptif tema
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF3F4F6);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final navBoxColor =
+        isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF8FAFC);
+    final borderColor =
+        isDark ? const Color(0xFF2C2C2C) : const Color(0xFFE2E8F0);
+    final darkText = isDark ? Colors.white : const Color(0xFF1F2937);
+    final subText = isDark ? Colors.white54 : const Color(0xFF6B7280);
+
     if (monthData.isEmpty) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF8FAFC),
-        body: Center(
+      return Scaffold(
+        backgroundColor: bgColor,
+        body: const Center(
           child: CircularProgressIndicator(color: primaryGreen),
         ),
       );
@@ -139,7 +149,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
     final now = DateTime.now();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -150,14 +160,14 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back,
-              color: AppColors.primary,
+              color: isDark ? Colors.white : AppColors.primary,
               size: 22,
             ),
           ),
         ),
-        title: const Text(
+        title: Text(
           'Kalender Hijriah',
           style: TextStyle(
             color: darkText,
@@ -185,7 +195,10 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [primaryGreen, Color(0xFF2E7D32)],
+                      colors: [
+                        primaryGreen,
+                        AppColors.primary,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -215,11 +228,11 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                     blurRadius: 20,
                     spreadRadius: 1,
                     offset: const Offset(0, 8),
@@ -233,9 +246,9 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: navBoxColor,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: borderColor),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -243,13 +256,16 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                         _buildNavIconButton(
                           icon: Icons.chevron_left_rounded,
                           onTap: _prevMonth,
+                          isDark: isDark,
+                          darkText: darkText,
+                          borderColor: borderColor,
                         ),
                         Column(
                           children: [
                             Text(
                               DateFormat('MMMM yyyy', 'en_US')
                                   .format(_currentMonth),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: darkText,
@@ -269,6 +285,9 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                         _buildNavIconButton(
                           icon: Icons.chevron_right_rounded,
                           onTap: _nextMonth,
+                          isDark: isDark,
+                          darkText: darkText,
+                          borderColor: borderColor,
                         ),
                       ],
                     ),
@@ -312,37 +331,36 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                       final day = days[index - firstWeekday];
                       final isSelected = _selectedDay == day;
 
-                      // Cek apakah tanggal ini adalah hari ini
                       final isToday = now.day == day &&
                           now.month == _currentMonth.month &&
                           now.year == _currentMonth.year;
 
-                      // Warna background berdasarkan status
                       Color? backgroundColor;
                       Gradient? backgroundGradient;
                       Color textColor = darkText;
                       Color subTextColor = subText;
 
                       if (isSelected) {
-                        // Hijau elegan untuk tanggal terpilih
                         backgroundGradient = const LinearGradient(
                           colors: [
-                            Color(0xFF388E3C),
-                            Color(0xFF2E7D32),
+                            AppColors.primary,
+                            AppColors.primary,
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         );
-
                         textColor = Colors.white;
                         subTextColor = Colors.white.withOpacity(0.85);
                       } else if (isToday) {
-                        // Hijau muda untuk hari ini
-                        backgroundColor = const Color(0xFFE8F5E9);
-                        textColor = const Color(0xFF2E7D32);
-                        subTextColor = const Color(0xFF388E3C);
+                        backgroundColor = isDark
+                            ? const Color(0xFF1B3822)
+                            : const Color(0xFFE8F5E9);
+                        textColor = const Color(0xFF4CAF50);
+                        subTextColor = const Color(0xFF81C784);
                       } else {
-                        backgroundColor = const Color(0xFFFAFAFA);
+                        backgroundColor = isDark
+                            ? const Color(0xFF252525)
+                            : const Color(0xFFFAFAFA);
                       }
 
                       return GestureDetector(
@@ -361,14 +379,15 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                                 ? null
                                 : Border.all(
                                     color: isToday
-                                        ? primaryGreen.withOpacity(0.4)
-                                        : const Color(0xFFEEF2F6),
+                                        ? AppColors.primary.withOpacity(0.4)
+                                        : borderColor,
                                     width: isToday ? 1.5 : 1.0,
                                   ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: primaryGreen.withOpacity(0.35),
+                                      color:
+                                          AppColors.primary.withOpacity(0.35),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -419,11 +438,11 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                   ),
@@ -444,7 +463,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                               '${selectedData.hijriDay} ${selectedData.hijriMonth} ${selectedData.hijriYear} H',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 color: darkText,
@@ -454,7 +473,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                             const SizedBox(height: 4),
                             Text(
                               readableDate,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: subText,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
@@ -483,7 +502,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                               Text(
                                 'Event Islam',
                                 style: TextStyle(
-                                  color: Color(0xFFB48300),
+                                  color: Color(0xFFD4AF37),
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -496,7 +515,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                   ),
 
                   const SizedBox(height: 16),
-                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  Divider(height: 1, color: borderColor),
                   const SizedBox(height: 16),
 
                   /// TILE CONTAINER EVENT
@@ -504,13 +523,15 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: hasEvent
-                          ? lightGreen.withOpacity(0.5)
-                          : const Color(0xFFF8FAFC),
+                          ? (isDark
+                              ? const Color(0xFF1B3822)
+                              : lightGreen.withOpacity(0.5))
+                          : navBoxColor,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: hasEvent
-                            ? primaryGreen.withOpacity(0.2)
-                            : const Color(0xFFE2E8F0),
+                            ? primaryGreen.withOpacity(0.3)
+                            : borderColor,
                       ),
                     ),
                     child: Row(
@@ -519,7 +540,11 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: hasEvent ? primaryGreen : Colors.white,
+                            color: hasEvent
+                                ? primaryGreen
+                                : (isDark
+                                    ? const Color(0xFF2A2A2A)
+                                    : Colors.white),
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
@@ -545,7 +570,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                             children: [
                               Text(
                                 eventName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: darkText,
@@ -556,7 +581,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
                                 hasEvent
                                     ? 'Momen penting dalam kalender Islam'
                                     : 'Tidak ada agenda khusus hari ini',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: subText,
                                   fontSize: 12,
                                 ),
@@ -579,9 +604,12 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
   Widget _buildNavIconButton({
     required IconData icon,
     required VoidCallback onTap,
+    required bool isDark,
+    required Color darkText,
+    required Color borderColor,
   }) {
     return Material(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -591,7 +619,7 @@ class _HijriCalendarPageState extends State<HijriCalendarPage> {
           height: 36,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: borderColor),
           ),
           child: Icon(icon, color: darkText, size: 20),
         ),
@@ -613,16 +641,14 @@ class _DayHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color textColor = const Color(0xFF94A3B8);
-    if (isWeekend) textColor = const Color(0xFF94A3B8);
-    if (isJumat) textColor = const Color(0xFF94A3B8);
+    const textColor = Color(0xFF94A3B8);
 
     return SizedBox(
       width: 36,
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           fontWeight: FontWeight.w700,
           color: textColor,
           fontSize: 12,

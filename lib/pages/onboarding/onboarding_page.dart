@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:muslim_journey/pages/login/login_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-
-import 'package:muslim_journey/pages/home/home_page.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -46,11 +46,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
   // SELESAI ONBOARDING
   // =====================================================
 
-  void finishOnboarding() {
+  Future<void> finishOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_onboarding', true);
+
+    if (!mounted) return;
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => const HomePage(),
+        builder: (_) => const LoginPage(),
       ),
     );
   }
@@ -78,9 +83,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     const primary = Color(0xff2E7D32);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -98,10 +104,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: finishOnboarding,
-                  child: const Text(
+                  child: Text(
                     'Lewati',
                     style: TextStyle(
-                      color: Colors.grey,
+                      color: isDark ? Colors.white54 : Colors.grey,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -140,7 +146,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               width: 230,
                               height: 230,
                               decoration: BoxDecoration(
-                                color: primary.withOpacity(0.08),
+                                color:
+                                    primary.withOpacity(isDark ? 0.15 : 0.08),
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
@@ -178,10 +185,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         Text(
                           page.title,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xff1E1E1E),
+                            color:
+                                isDark ? Colors.white : const Color(0xff1E1E1E),
                             height: 1.2,
                           ),
                         ),
@@ -199,10 +207,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           child: Text(
                             page.description,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               height: 1.7,
-                              color: Colors.grey,
+                              color: isDark ? Colors.white70 : Colors.grey,
                             ),
                           ),
                         ),
@@ -226,7 +234,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   dotWidth: 8,
                   spacing: 8,
                   activeDotColor: primary,
-                  dotColor: Colors.grey.shade300,
+                  dotColor:
+                      isDark ? Colors.grey.shade800 : Colors.grey.shade300,
                 ),
               ),
 

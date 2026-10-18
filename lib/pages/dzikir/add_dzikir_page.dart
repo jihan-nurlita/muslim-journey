@@ -60,8 +60,10 @@ class _AddDzikirPageState extends State<AddDzikirPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -76,10 +78,10 @@ class _AddDzikirPageState extends State<AddDzikirPage> {
           ),
         ),
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'Tambah Dzikir',
           style: TextStyle(
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -90,25 +92,32 @@ class _AddDzikirPageState extends State<AddDzikirPage> {
         child: Column(
           children: [
             _input(
+              context: context,
               title: 'Nama Dzikir',
               controller: titleController,
               hint: 'Sholawat Jibril',
             ),
             const SizedBox(height: 18),
+
+            /// INPUT TULISAN ARAB (Diatur Rata Kanan / RTL)
             _input(
+              context: context,
               title: 'Tulisan Arab',
               controller: arabController,
               hint: 'اللهم صل على محمد',
               maxLines: 3,
+              isArab: true,
             ),
             const SizedBox(height: 18),
             _input(
+              context: context,
               title: 'Latin',
               controller: latinController,
               hint: 'Allahumma shalli ala Muhammad',
             ),
             const SizedBox(height: 18),
             _input(
+              context: context,
               title: 'Arti',
               controller: meaningController,
               hint: 'Ya Allah limpahkan sholawat...',
@@ -116,6 +125,7 @@ class _AddDzikirPageState extends State<AddDzikirPage> {
             ),
             const SizedBox(height: 18),
             _input(
+              context: context,
               title: 'Target Dzikir',
               controller: targetController,
               hint: '10000',
@@ -152,31 +162,47 @@ class _AddDzikirPageState extends State<AddDzikirPage> {
   }
 
   Widget _input({
+    required BuildContext context,
     required String title,
     required TextEditingController controller,
     required String hint,
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
+    bool isArab = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
+            color: isDark ? Colors.white : AppColors.black,
           ),
         ),
         const SizedBox(height: 10),
         TextField(
+          autofocus: false,
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          textAlign: isArab ? TextAlign.right : TextAlign.left,
+          textDirection: isArab ? TextDirection.rtl : TextDirection.ltr,
+          style: TextStyle(
+            fontSize: isArab ? 20 : 16,
+            color: isDark ? Colors.white : AppColors.black,
+          ),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white54 : Colors.grey,
+              fontSize: isArab ? 18 : 14,
+            ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
               borderSide: BorderSide.none,

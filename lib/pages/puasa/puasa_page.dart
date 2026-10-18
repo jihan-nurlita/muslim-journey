@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Model Data untuk Puasa
 class FastingInfo {
@@ -43,10 +43,10 @@ class _PuasaPageState extends State<PuasaPage> {
     super.initState();
     currentMonth = DateTime.now();
     selectedDate = DateTime.now();
-    _loadCompletedFastingDates(); // [TAMBAHAN 1] Load data saat pertama kali dibuka
+    _loadCompletedFastingDates();
   }
 
-  /// [TAMBAHAN 2] Fungsi membaca data dari SharedPreferences
+  /// Fungsi membaca data dari SharedPreferences
   Future<void> _loadCompletedFastingDates() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String>? dateStrings = prefs.getStringList(_storageKey);
@@ -59,7 +59,7 @@ class _PuasaPageState extends State<PuasaPage> {
     }
   }
 
-  /// [TAMBAHAN 3] Fungsi toggle status puasa & simpan ke SharedPreferences
+  /// Fungsi toggle status puasa & simpan ke SharedPreferences
   Future<void> _toggleFastingStatus(DateTime date) async {
     final prefs = await SharedPreferences.getInstance();
     final normalizedDate = DateTime(date.year, date.month, date.day);
@@ -187,6 +187,9 @@ class _PuasaPageState extends State<PuasaPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Deteksi apakah Dark Mode sedang aktif
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final nextFasting = getNextFastingDate();
     final fastingTodayOrSelected = getFastingInfo(selectedDate);
 
@@ -216,19 +219,20 @@ class _PuasaPageState extends State<PuasaPage> {
         d.day == selectedDate.day);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(Icons.arrow_back,
+              color: isDark ? Colors.white : AppColors.primary),
         ),
-        title: const Text(
+        title: Text(
           'Puasa Sunnah',
           style: TextStyle(
-              color: AppColors.black,
+              color: isDark ? Colors.white : AppColors.black,
               fontSize: 20,
               fontWeight: FontWeight.bold),
         ),
@@ -237,7 +241,7 @@ class _PuasaPageState extends State<PuasaPage> {
         padding: const EdgeInsets.all(18),
         child: Column(
           children: [
-            /// HEADER
+            /// HEADER (Gradient tetap dipertahankan agar cantik)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -287,16 +291,16 @@ class _PuasaPageState extends State<PuasaPage> {
 
             const SizedBox(height: 24),
 
-            /// TARGET PUASA BULANAN
+            /// TARGET PUASA BULAN INI
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                     blurRadius: 14,
                     offset: const Offset(0, 10),
                   ),
@@ -305,9 +309,13 @@ class _PuasaPageState extends State<PuasaPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Target Puasa Bulan Ini',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 18),
                   ClipRRect(
@@ -315,14 +323,18 @@ class _PuasaPageState extends State<PuasaPage> {
                     child: LinearProgressIndicator(
                       value: progressValue,
                       minHeight: 14,
-                      backgroundColor: AppColors.secondary,
+                      backgroundColor: isDark
+                          ? const Color(0xff2A2A2A)
+                          : AppColors.secondary,
                       color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 14),
                   Text(
                     '$completedThisMonth / $totalFastingDaysInMonth Hari Tercapai',
-                    style: const TextStyle(color: AppColors.grey),
+                    style: TextStyle(
+                      color: isDark ? Colors.white54 : AppColors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -331,7 +343,7 @@ class _PuasaPageState extends State<PuasaPage> {
             const SizedBox(height: 24),
 
             /// KALENDER INTERAKTIF
-            _buildCalendarSection(daysInMonth),
+            _buildCalendarSection(daysInMonth, isDark),
 
             const SizedBox(height: 24),
 
@@ -379,7 +391,7 @@ class _PuasaPageState extends State<PuasaPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    /// [TAMBAHAN 4] Tombol Tandai Selesai / Batalkan
+                    /// Tombol Tandai Selesai / Batalkan
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -420,7 +432,7 @@ class _PuasaPageState extends State<PuasaPage> {
     );
   }
 
-  Widget _buildCalendarSection(int totalDays) {
+  Widget _buildCalendarSection(int totalDays, bool isDark) {
     final firstDayWeekday =
         DateTime(currentMonth.year, currentMonth.month, 1).weekday % 7;
     final readableMonth = DateFormat('MMMM yyyy', 'id_ID').format(currentMonth);
@@ -429,11 +441,11 @@ class _PuasaPageState extends State<PuasaPage> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
             blurRadius: 14,
             offset: const Offset(0, 10),
           ),
@@ -445,25 +457,30 @@ class _PuasaPageState extends State<PuasaPage> {
             children: [
               IconButton(
                 onPressed: prevMonth,
-                icon: const Icon(Icons.chevron_left),
+                icon: Icon(Icons.chevron_left,
+                    color: isDark ? Colors.white : Colors.black87),
               ),
               Expanded(
                 child: Text(
                   readableMonth,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
               ),
               IconButton(
                 onPressed: nextMonth,
-                icon: const Icon(Icons.chevron_right),
+                icon: Icon(Icons.chevron_right,
+                    color: isDark ? Colors.white : Colors.black87),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          /// [TAMBAHAN 5] Baris Header Nama Hari
+          /// Baris Header Nama Hari
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: daysOfWeek
@@ -471,9 +488,9 @@ class _PuasaPageState extends State<PuasaPage> {
                       child: Text(
                         day,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.grey,
+                          color: isDark ? Colors.white54 : AppColors.grey,
                           fontSize: 12,
                         ),
                       ),
@@ -502,7 +519,6 @@ class _PuasaPageState extends State<PuasaPage> {
               final fastingInfo = getFastingInfo(date);
               final isFasting = fastingInfo != null;
 
-              // [TAMBAHAN 6] Cek apakah tanggal ini sudah diselesaikan
               final isCompleted = completedFastingDates.any((d) =>
                   d.year == date.year &&
                   d.month == date.month &&
@@ -519,15 +535,23 @@ class _PuasaPageState extends State<PuasaPage> {
                     color: isCompleted
                         ? AppColors.primary
                         : (isSelected
-                            ? AppColors.secondary
+                            ? (isDark
+                                ? const Color(0xff2A4E3F)
+                                : AppColors.secondary)
                             : (isFasting
-                                ? const Color(0xffE8FFF1)
-                                : Colors.white)),
+                                ? (isDark
+                                    ? const Color(0xff1C3A2C)
+                                    : const Color(0xffE8FFF1))
+                                : (isDark
+                                    ? const Color(0xff2A2A2A)
+                                    : Colors.white))),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isSelected || isFasting
                           ? AppColors.primary
-                          : Colors.grey.shade200,
+                          : (isDark
+                              ? Colors.grey.shade800
+                              : Colors.grey.shade200),
                     ),
                   ),
                   child: Stack(
@@ -540,8 +564,10 @@ class _PuasaPageState extends State<PuasaPage> {
                           color: isCompleted
                               ? Colors.white
                               : (isSelected
-                                  ? AppColors.primary
-                                  : AppColors.black),
+                                  ? (isDark ? Colors.white : AppColors.primary)
+                                  : (isDark
+                                      ? Colors.white70
+                                      : AppColors.black)),
                         ),
                       ),
                       if (isCompleted)

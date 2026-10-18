@@ -1,22 +1,23 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:io';
+import 'package:flutter/foundation.dart'; // Untuk kIsWeb
 import 'package:flutter/material.dart';
-
 import 'package:intl/intl.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
 import 'package:muslim_journey/core/constants/indonesia_cities.dart';
 import 'package:muslim_journey/core/services/notification_service.dart';
 import 'package:muslim_journey/pages/doa/doa_page.dart';
 import 'package:muslim_journey/pages/dzikir/dzikir_page.dart';
-import 'package:muslim_journey/pages/habit/habit_page.dart';
 import 'package:muslim_journey/pages/home/prayer_schedule.dart';
+import 'package:muslim_journey/pages/navigation/custom_bottom_navbar.dart';
 import 'package:muslim_journey/pages/notification/notification_page.dart';
-import 'package:muslim_journey/pages/profile/profile_page.dart';
 import 'package:muslim_journey/pages/puasa/puasa_page.dart';
 import 'package:muslim_journey/pages/quran/quran_page.dart';
 import 'package:muslim_journey/pages/sholat/sholat_page.dart';
 import 'package:muslim_journey/pages/target/target_page.dart';
 import 'package:muslim_journey/providers/prayer_provider.dart';
+import 'package:muslim_journey/services/auth_service.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -27,25 +28,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Variabel
   Timer? timer;
-
   String countdownText = '';
 
-  // Helper Countdown
   String formatTime(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-
     final hours = twoDigits(duration.inHours);
-
     final minutes = twoDigits(duration.inMinutes.remainder(60));
-
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-
     return '$hours:$minutes:$seconds';
   }
 
-  // Function Countdown
   void startCountdown(Map<String, dynamic> timings) {
     timer?.cancel();
 
@@ -100,14 +93,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  //
   @override
   void dispose() {
     timer?.cancel();
     super.dispose();
   }
 
-  // Helper active prayer
   String getCurrentPrayer(Map<String, dynamic> timings) {
     final now = TimeOfDay.now();
 
@@ -137,23 +128,16 @@ class _HomePageState extends State<HomePage> {
     return currentPrayer;
   }
 
-  //
   Future<void> refreshPrayerNotifications() async {
     final provider = context.read<PrayerProvider>();
-
     await provider.fetchPrayerTimes();
 
     if (provider.prayerData == null) return;
 
     final timings = provider.prayerData!['timings'] as Map<String, dynamic>;
 
-    /// hapus notif lama
     await NotificationService.cancelAllNotifications();
-
-    /// buat notif baru
     await schedulePrayerNotifications(timings);
-
-    /// update countdown
     startCountdown(timings);
   }
 
@@ -168,9 +152,7 @@ class _HomePageState extends State<HomePage> {
 
       if (provider.prayerData != null) {
         final timings = provider.prayerData!['timings'] as Map<String, dynamic>;
-
         startCountdown(timings);
-
         await schedulePrayerNotifications(timings);
       }
     });
@@ -191,7 +173,6 @@ class _HomePageState extends State<HomePage> {
 
     for (final prayer in prayers.entries) {
       final split = prayer.value.split(':');
-
       final now = DateTime.now();
 
       final prayerTime = DateTime(
@@ -217,10 +198,11 @@ class _HomePageState extends State<HomePage> {
 
   void showCityPicker(BuildContext context) {
     final provider = context.read<PrayerProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(28),
@@ -233,7 +215,12 @@ class _HomePageState extends State<HomePage> {
             final city = indonesiaCities[index];
 
             return ListTile(
-              title: Text(city),
+              title: Text(
+                city,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
               onTap: () async {
                 Navigator.pop(context);
 
@@ -255,9 +242,9 @@ class _HomePageState extends State<HomePage> {
     final provider = context.watch<PrayerProvider>();
 
     if (provider.isLoading || provider.prayerData == null) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -272,10 +259,8 @@ class _HomePageState extends State<HomePage> {
     final activePrayer = getCurrentPrayer(timings);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      bottomNavigationBar: const _BottomNavbar(
-        currentIndex: 0,
-      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      bottomNavigationBar: const CustomBottomNavbar(currentIndex: 0),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(18),
@@ -320,64 +305,130 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _HeaderSection extends StatelessWidget {
+class _HeaderSection extends StatefulWidget {
   const _HeaderSection();
 
   @override
+  State<_HeaderSection> createState() => _HeaderSectionState();
+}
+
+class _HeaderSectionState extends State<_HeaderSection> {
+  String userName = 'Memuat...';
+  String? userImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final name = await AuthService.getUserName();
+    final image = await AuthService.getUserImage();
+    if (mounted) {
+      setState(() {
+        userName = name;
+        userImage = image;
+      });
+    }
+  }
+
+  ImageProvider? _getProfileImage() {
+    if (userImage == null || userImage!.isEmpty) return null;
+    if (kIsWeb) {
+      return NetworkImage(userImage!);
+    } else {
+      return FileImage(File(userImage!));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final profileImage = _getProfileImage();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
-        const CircleAvatar(
-          radius: 24,
-          backgroundColor: AppColors.secondary,
-          backgroundImage: AssetImage(
-            'assets/images/profile.png',
+        // AVATAR FOTO PROFIL / DEFAULT ICON
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.secondary,
+            border: Border.all(color: AppColors.primary, width: 2),
+            image: profileImage != null
+                ? DecorationImage(
+                    image: profileImage,
+                    fit: BoxFit.cover,
+                  )
+                : null,
           ),
+          child: profileImage == null
+              ? const Icon(
+                  Icons.person_rounded,
+                  size: 26,
+                  color: AppColors.primary,
+                )
+              : null,
         ),
         const SizedBox(width: 12),
 
-        /// NAME
-        const Expanded(
+        /// NAME & GREETING
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Assalamualaikum',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.black,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppColors.black,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 1),
               Text(
-                'aisha noor',
+                userName,
                 style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.grey,
+                  color: isDark ? Colors.white60 : AppColors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
 
         /// NOTIFICATION
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationPage(),
               ),
-            ],
-          ),
-          child: const Icon(
-            Icons.notifications_none_rounded,
-            color: AppColors.black,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.notifications_none_rounded,
+              color: isDark ? Colors.white : AppColors.black,
+            ),
           ),
         ),
       ],
@@ -423,11 +474,8 @@ class _PrayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gregorian = prayerData['date']['gregorian'] as Map<String, dynamic>;
-
     final hijri = prayerData['date']['hijri'] as Map<String, dynamic>;
-
     final rawDate = gregorian['date'];
-
     final parsedDate = DateFormat('dd-MM-yyyy').parse(rawDate);
 
     final readableDate =
@@ -529,6 +577,8 @@ class _PrayerScheduleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final prayers = [
       {
         'name': 'Imsak',
@@ -561,12 +611,12 @@ class _PrayerScheduleSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Text(
+            Text(
               'Jadwal Utama',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: AppColors.black,
+                color: isDark ? Colors.white : AppColors.black,
               ),
             ),
             const Spacer(),
@@ -595,22 +645,23 @@ class _PrayerScheduleSection extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final prayer = prayers[index];
-
               final bool isActive = prayer['name'] == activePrayer;
 
               return Container(
                 width: 86,
                 decoration: BoxDecoration(
-                  color: isActive ? AppColors.secondary : AppColors.white,
+                  color: isActive
+                      ? (isDark ? const Color(0xff1E382B) : AppColors.secondary)
+                      : (isDark ? const Color(0xff1E1E1E) : AppColors.white),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
                     color: isActive
-                        ? AppColors.primary.withOpacity(0.12)
+                        ? AppColors.primary.withOpacity(0.3)
                         : Colors.transparent,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -624,7 +675,9 @@ class _PrayerScheduleSection extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: isActive ? AppColors.primary : AppColors.grey,
+                        color: isActive
+                            ? AppColors.primary
+                            : (isDark ? Colors.white60 : AppColors.grey),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -633,7 +686,9 @@ class _PrayerScheduleSection extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: isActive ? AppColors.primary : AppColors.black,
+                        color: isActive
+                            ? AppColors.primary
+                            : (isDark ? Colors.white : AppColors.black),
                       ),
                     ),
                   ],
@@ -652,6 +707,8 @@ class _MainMenuSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final menus = [
       {
         'title': 'Quran',
@@ -688,12 +745,12 @@ class _MainMenuSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Menu Utama',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
           ),
         ),
         const SizedBox(height: 16),
@@ -725,11 +782,11 @@ class _MainMenuSection extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -746,10 +803,10 @@ class _MainMenuSection extends StatelessWidget {
                     Text(
                       menu['title'] as String,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.black,
+                        color: isDark ? Colors.white : AppColors.black,
                       ),
                     ),
                   ],
@@ -796,9 +853,7 @@ class _MotivationSectionState extends State<_MotivationSection> {
 
   void generateQuote() {
     final random = Random();
-
     int index = random.nextInt(quotes.length);
-
     todayQuote = quotes[index];
     todayHadis = hadis[index];
   }
@@ -856,91 +911,6 @@ class _MotivationSectionState extends State<_MotivationSection> {
               ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _BottomNavbar extends StatelessWidget {
-  final int currentIndex;
-
-  const _BottomNavbar({
-    required this.currentIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            break;
-
-          case 1:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NotificationPage(),
-              ),
-            );
-            break;
-
-          case 2:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const HabitPage(),
-              ),
-            );
-            break;
-
-          case 3:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const TargetPage(),
-              ),
-            );
-            break;
-
-          case 4:
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (_) => const ProfilePage()));
-            break;
-        }
-      },
-      elevation: 0,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.white,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.grey,
-      selectedIconTheme: const IconThemeData(
-        size: 28,
-      ),
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_rounded),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.task_alt),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.track_changes_rounded),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_rounded),
-          label: '',
         ),
       ],
     );

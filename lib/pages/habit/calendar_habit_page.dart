@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
-import 'package:muslim_journey/pages/target/data/target_data.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:muslim_journey/pages/target/models/target_model.dart';
+import 'package:muslim_journey/providers/target_provider.dart';
+import 'package:provider/provider.dart';
 
 class CalendarHabitPage extends StatefulWidget {
   const CalendarHabitPage({super.key});
@@ -16,9 +16,6 @@ class CalendarHabitPage extends StatefulWidget {
 class _CalendarHabitPageState extends State<CalendarHabitPage> {
   late DateTime _focusedDate;
   late DateTime _selectedDate;
-
-  /// Menyimpan progres harian dari SharedPreferences
-  Map<String, int> dailyProgress = {};
 
   final List<String> _months = [
     'Januari',
@@ -50,39 +47,13 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
     super.initState();
     _focusedDate = DateTime.now();
     _selectedDate = DateTime.now();
-    _loadHabitData();
-  }
-
-  /// Memuat data dari SharedPreferences
-  Future<void> _loadHabitData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? savedData = prefs.getString('daily_habit_progress');
-
-    if (savedData != null) {
-      final Map<String, dynamic> decoded = jsonDecode(savedData);
-      setState(() {
-        dailyProgress =
-            decoded.map((key, value) => MapEntry(key, value as int));
-      });
-    }
-  }
-
-  /// Helper untuk membuat format string kunci (YYYY-MM-DD)
-  String _getDateKey(DateTime date) {
-    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-  }
-
-  /// Memeriksa jumlah hitungan habit pada tanggal tertentu
-  int _getCurrentCountForDate(DateTime date, String targetTitle) {
-    final key = "${_getDateKey(date)}_$targetTitle";
-    return dailyProgress[key] ?? 0;
   }
 
   /// Memeriksa apakah ada setidaknya satu aktivitas yang tercatat pada tanggal tertentu
-  bool _hasActivityOnDate(DateTime date) {
-    if (targetList.isEmpty) return false;
-    for (var target in targetList) {
-      if (_getCurrentCountForDate(date, target.title) > 0) {
+  bool _hasActivityOnDate(TargetProvider provider, DateTime date) {
+    if (provider.targets.isEmpty) return false;
+    for (var target in provider.targets) {
+      if (provider.getProgressForDate(target.title, date) > 0) {
         return true;
       }
     }
@@ -110,163 +81,203 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
     });
   }
 
-  /// Menampilkan Bottom Sheet detail aktivitas dengan UI rapi
+  /// Menampilkan Bottom Sheet detail aktivitas dengan UI rapi & responsif Tema
   void _showActivityBottomSheet(DateTime date) {
-    final items = targetList; // Mengambil data habit asli kamu
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
       isScrollControlled: true,
       elevation: 5,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
       builder: (context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6,
-          maxChildSize: 0.9,
-          minChildSize: 0.4,
-          builder: (context, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  // Handle Bar Bottom Sheet
-                  Center(
-                    child: Container(
-                      width: 48,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Judul Bottom Sheet
-                  const Text(
-                    'Daftar Aktivitas',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${date.day} ${_months[date.month - 1]} ${date.year}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // List Aktivitas
-                  Expanded(
-                    child: items.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.assignment_turned_in_outlined,
-                                    size: 64, color: Colors.grey.shade300),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Tidak ada aktivitas tercatat',
-                                  style: TextStyle(
-                                      color: Colors.grey.shade400,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.separated(
-                            controller: scrollController,
-                            itemCount: items.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 14),
-                            itemBuilder: (context, index) {
-                              final target = items[index];
-                              final currentCount =
-                                  _getCurrentCountForDate(date, target.title);
-                              final isCompleted =
-                                  currentCount >= target.targetCount;
+        return Consumer<TargetProvider>(
+          builder: (context, targetProvider, child) {
+            final List<TargetModel> items = targetProvider.targets;
 
-                              return Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border:
-                                      Border.all(color: Colors.grey.shade100),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.02),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    )
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.secondary
-                                            .withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Icon(target.icon,
-                                          color: AppColors.primary, size: 24),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            target.title,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '$currentCount/${target.targetCount} ${target.unit} • ${target.category}',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.grey.shade500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(
-                                      isCompleted
-                                          ? Icons.check_circle_rounded
-                                          : Icons
-                                              .radio_button_unchecked_rounded,
-                                      color: isCompleted
-                                          ? AppColors.primary
-                                          : Colors.grey.shade300,
-                                      size: 26,
-                                    )
-                                  ],
-                                ),
-                              );
-                            },
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.6,
+              maxChildSize: 0.9,
+              minChildSize: 0.4,
+              builder: (context, scrollController) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 12),
+                      // Handle Bar Bottom Sheet
+                      Center(
+                        child: Container(
+                          width: 48,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(10),
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Judul Bottom Sheet
+                      Text(
+                        'Daftar Aktivitas',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${date.day} ${_months[date.month - 1]} ${date.year}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white54 : Colors.grey.shade500,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // List Aktivitas
+                      Expanded(
+                        child: items.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.assignment_turned_in_outlined,
+                                      size: 64,
+                                      color: isDark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Tidak ada aktivitas tercatat',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white38
+                                            : Colors.grey.shade400,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.separated(
+                                controller: scrollController,
+                                itemCount: items.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 14),
+                                itemBuilder: (context, index) {
+                                  final target = items[index];
+                                  final currentCount =
+                                      targetProvider.getProgressForDate(
+                                    target.title,
+                                    date,
+                                  );
+                                  final isCompleted =
+                                      currentCount >= target.targetCount;
+
+                                  return Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xff2A2A2A)
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? Colors.white12
+                                            : Colors.grey.shade100,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withOpacity(isDark ? 0.2 : 0.02),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        )
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppColors.primary
+                                                    .withOpacity(0.2)
+                                                : AppColors.secondary
+                                                    .withOpacity(0.5),
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                          ),
+                                          child: Icon(
+                                            target.icon,
+                                            color: AppColors.primary,
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                target.title,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : Colors.black87,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                '$currentCount/${target.targetCount} ${target.unit} (${target.category})',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: isDark
+                                                      ? Colors.white54
+                                                      : Colors.grey.shade500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(
+                                          isCompleted
+                                              ? Icons.check_circle_rounded
+                                              : Icons
+                                                  .radio_button_unchecked_rounded,
+                                          color: isCompleted
+                                              ? AppColors.primary
+                                              : (isDark
+                                                  ? Colors.grey.shade600
+                                                  : Colors.grey.shade300),
+                                          size: 26,
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
@@ -276,13 +287,15 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final targetProvider = context.watch<TargetProvider>();
     final daysInMonth = _getDaysInMonth(_focusedDate.year, _focusedDate.month);
     final offset =
         _getFirstDayOfWeekOffset(_focusedDate.year, _focusedDate.month);
     final totalGridItems = daysInMonth + offset;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -296,10 +309,10 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        title: const Text(
+        title: Text(
           "Kalender Aktivitas",
           style: TextStyle(
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
             letterSpacing: -0.5,
@@ -307,7 +320,6 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
         ),
         centerTitle: true,
       ),
-      // Menggunakan SingleChildScrollView agar jika layar kekecilan, seluruh konten bisa di-scroll rapi
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(
@@ -322,11 +334,11 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xff1E1E1E) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
                       blurRadius: 15,
                       offset: const Offset(0, 4),
                     )
@@ -339,16 +351,19 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                       onTap: _previousMonth,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Icon(Icons.arrow_back_ios_rounded,
-                            size: 14, color: Colors.grey.shade700),
+                        child: Icon(
+                          Icons.arrow_back_ios_rounded,
+                          size: 14,
+                          color: isDark ? Colors.white70 : Colors.grey.shade700,
+                        ),
                       ),
                     ),
                     Text(
                       '${_months[_focusedDate.month - 1]} ${_focusedDate.year}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF222222),
+                        color: isDark ? Colors.white : const Color(0xFF222222),
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -356,8 +371,11 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                       onTap: _nextMonth,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Icon(Icons.arrow_forward_ios_rounded,
-                            size: 14, color: Colors.grey.shade700),
+                        child: Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 14,
+                          color: isDark ? Colors.white70 : Colors.grey.shade700,
+                        ),
                       ),
                     ),
                   ],
@@ -377,7 +395,7 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          color: Colors.grey.shade400,
+                          color: isDark ? Colors.white38 : Colors.grey.shade400,
                         ),
                       ),
                     ),
@@ -387,12 +405,10 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
 
               const SizedBox(height: 16),
 
-              /// GRID KALENDER UTAMA (Tanpa Expanded, nempel pas di bawah Hari)
+              /// GRID KALENDER UTAMA
               GridView.builder(
-                shrinkWrap:
-                    true, // Membuat tinggi grid sesuai dengan total item kalender
-                physics:
-                    const NeverScrollableScrollPhysics(), // Scroll utama di-handle oleh SingleChildScrollView luar
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: totalGridItems,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
@@ -406,7 +422,10 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
 
                   final dayNumber = index - offset + 1;
                   final date = DateTime(
-                      _focusedDate.year, _focusedDate.month, dayNumber);
+                    _focusedDate.year,
+                    _focusedDate.month,
+                    dayNumber,
+                  );
 
                   final isSelected = _selectedDate.year == date.year &&
                       _selectedDate.month == date.month &&
@@ -416,7 +435,7 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                       DateTime.now().month == date.month &&
                       DateTime.now().day == date.day;
 
-                  final hasActivity = _hasActivityOnDate(date);
+                  final hasActivity = _hasActivityOnDate(targetProvider, date);
 
                   return GestureDetector(
                     onTap: () {
@@ -432,12 +451,15 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                             ? AppColors.primary
                             : isToday
                                 ? AppColors.secondary.withOpacity(0.7)
-                                : Colors.white,
+                                : (isDark
+                                    ? const Color(0xff1E1E1E)
+                                    : Colors.white),
                         borderRadius: BorderRadius.circular(16),
                         border: isToday && !isSelected
                             ? Border.all(
                                 color: AppColors.primary.withOpacity(0.3),
-                                width: 1.5)
+                                width: 1.5,
+                              )
                             : Border.all(color: Colors.transparent),
                         boxShadow: [
                           if (isSelected)
@@ -448,7 +470,8 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                             )
                           else if (!isToday)
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.015),
+                              color: Colors.black
+                                  .withOpacity(isDark ? 0.2 : 0.015),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             )
@@ -462,8 +485,11 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
-                              color:
-                                  isSelected ? Colors.white : AppColors.primary,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark && !isToday
+                                      ? Colors.white
+                                      : AppColors.primary),
                             ),
                           ),
                           if (hasActivity) ...[
@@ -475,7 +501,7 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                                 shape: BoxShape.circle,
                                 color: isSelected
                                     ? Colors.white
-                                    : AppColors.primary.withOpacity(0.4),
+                                    : AppColors.primary.withOpacity(0.6),
                               ),
                             ),
                           ]
@@ -486,11 +512,9 @@ class _CalendarHabitPageState extends State<CalendarHabitPage> {
                 },
               ),
 
-              /// SECTION REMINDER / MOTIVASI (Sekarang pas berada di bawah Grid Kalender)
+              /// SECTION REMINDER / MOTIVASI
               const _ReminderSection(),
-              const SizedBox(
-                  height:
-                      24), // Memberikan padding bawah agar tidak terlalu mepet screen luar
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -554,7 +578,7 @@ class _ReminderSectionState extends State<_ReminderSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24), // Spacing antara kalender dan card motivasi
+        const SizedBox(height: 24),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(22),

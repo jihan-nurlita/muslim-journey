@@ -3,24 +3,27 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
 import 'doa_data.dart';
 
-class DetailPage extends StatelessWidget {
+class DetailDoaPage extends StatelessWidget {
   final DoaModel doa;
 
-  const DetailPage({
+  const DetailDoaPage({
     super.key,
     required this.doa,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Mengecek apakah mode gelap sedang aktif
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
       /// APPBAR (FIX JUDUL PANJANG)
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(62),
         child: Container(
-          color: AppColors.background,
+          color: Theme.of(context).scaffoldBackgroundColor,
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -53,11 +56,11 @@ class DetailPage extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       height: 1.35,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.black,
+                      color: isDark ? Colors.white : AppColors.black,
                     ),
                   ),
                 ),
@@ -73,11 +76,13 @@ class DetailPage extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xff1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.06),
+                color: isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : AppColors.primary.withOpacity(0.06),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -92,7 +97,9 @@ class DetailPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
+                      color: isDark
+                          ? const Color(0xff2A2A2A)
+                          : AppColors.background,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
@@ -123,7 +130,8 @@ class DetailPage extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color:
+                      isDark ? const Color(0xff2A2A2A) : AppColors.background,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Directionality(
@@ -132,10 +140,10 @@ class DetailPage extends StatelessWidget {
                     doa.arab,
                     textAlign: TextAlign.right,
                     style: GoogleFonts.notoNaskhArabic(
-                      fontSize: 30,
+                      fontSize: 23,
                       height: 2.2,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xff5B4B4B),
+                      color: isDark ? Colors.white : const Color(0xff5B4B4B),
                     ),
                   ),
                 ),
@@ -159,15 +167,16 @@ class DetailPage extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color:
+                      isDark ? const Color(0xff2A2A2A) : AppColors.background,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Text(
                   doa.arti,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xff7E8D85),
+                    color: isDark ? Colors.white70 : const Color(0xff7E8D85),
                     height: 1.7,
                   ),
                 ),

@@ -14,6 +14,8 @@ void showCityPicker(BuildContext context) {
     builder: (_) {
       return StatefulBuilder(
         builder: (context, setState) {
+          // Deteksi status Dark Mode dari context
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           final query = searchController.text.trim().toLowerCase();
 
           final filteredCities = indonesiaCities.where((city) {
@@ -30,7 +32,7 @@ void showCityPicker(BuildContext context) {
               height: 520,
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                 borderRadius: BorderRadius.circular(32),
               ),
               child: Column(
@@ -42,7 +44,9 @@ void showCityPicker(BuildContext context) {
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
-                          color: AppColors.secondary,
+                          color: isDark
+                              ? const Color(0xff2A2A2A)
+                              : AppColors.secondary,
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: const Icon(
@@ -51,13 +55,13 @@ void showCityPicker(BuildContext context) {
                         ),
                       ),
                       const SizedBox(width: 14),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Pilih Kota',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.black,
+                            color: isDark ? Colors.white : AppColors.black,
                           ),
                         ),
                       ),
@@ -69,12 +73,15 @@ void showCityPicker(BuildContext context) {
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: AppColors.background,
+                            color: isDark
+                                ? const Color(0xff2A2A2A)
+                                : AppColors.background,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close_rounded,
                             size: 20,
+                            color: isDark ? Colors.white70 : AppColors.black,
                           ),
                         ),
                       ),
@@ -88,11 +95,17 @@ void showCityPicker(BuildContext context) {
                     controller: searchController,
                     autofocus: false,
                     textInputAction: TextInputAction.search,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : AppColors.black,
+                    ),
                     onChanged: (_) {
                       setState(() {});
                     },
                     decoration: InputDecoration(
                       hintText: 'Cari kota...',
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white54 : AppColors.grey,
+                      ),
                       prefixIcon: const Icon(
                         Icons.search_rounded,
                         color: AppColors.primary,
@@ -103,15 +116,17 @@ void showCityPicker(BuildContext context) {
                                 searchController.clear();
                                 setState(() {});
                               },
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.close_rounded,
                                 size: 20,
-                                color: AppColors.grey,
+                                color: isDark ? Colors.white54 : AppColors.grey,
                               ),
                             )
                           : null,
                       filled: true,
-                      fillColor: AppColors.background,
+                      fillColor: isDark
+                          ? const Color(0xff2A2A2A)
+                          : AppColors.background,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide.none,
@@ -135,26 +150,27 @@ void showCityPicker(BuildContext context) {
                   /// LIST CITY
                   Expanded(
                     child: filteredCities.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.location_off_rounded,
                                   size: 48,
                                   color: AppColors.grey,
                                 ),
-                                SizedBox(height: 12),
+                                const SizedBox(height: 12),
                                 Text(
                                   'Kota tidak ditemukan',
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.black,
+                                    color:
+                                        isDark ? Colors.white : AppColors.black,
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
+                                const SizedBox(height: 4),
+                                const Text(
                                   'Coba gunakan nama kota lain.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
@@ -238,7 +254,9 @@ void showCityPicker(BuildContext context) {
                                 child: Container(
                                   padding: const EdgeInsets.all(18),
                                   decoration: BoxDecoration(
-                                    color: AppColors.background,
+                                    color: isDark
+                                        ? const Color(0xff2A2A2A)
+                                        : AppColors.background,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(
@@ -247,7 +265,9 @@ void showCityPicker(BuildContext context) {
                                         width: 48,
                                         height: 48,
                                         decoration: BoxDecoration(
-                                          color: AppColors.secondary,
+                                          color: isDark
+                                              ? const Color(0xff3A3A3A)
+                                              : AppColors.secondary,
                                           borderRadius:
                                               BorderRadius.circular(16),
                                         ),
@@ -260,9 +280,12 @@ void showCityPicker(BuildContext context) {
                                       Expanded(
                                         child: Text(
                                           city,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 15,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppColors.black,
                                           ),
                                         ),
                                       ),

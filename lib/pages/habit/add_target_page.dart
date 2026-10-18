@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-
 import 'package:muslim_journey/core/constants/colors.dart';
-import 'package:muslim_journey/pages/target/data/target_data.dart';
 import 'package:muslim_journey/pages/target/models/target_model.dart';
+import 'package:muslim_journey/providers/target_provider.dart';
+import 'package:provider/provider.dart';
 
 class AddTargetPage extends StatefulWidget {
-  const AddTargetPage({super.key});
+  final TargetModel? target; // Opsional: Diisi jika mode Edit
+  final int? targetIndex; // Opsional: Indeks target yang akan di-edit
+
+  const AddTargetPage({
+    super.key,
+    this.target,
+    this.targetIndex,
+  });
 
   @override
   State<AddTargetPage> createState() => _AddTargetPageState();
@@ -13,10 +20,8 @@ class AddTargetPage extends StatefulWidget {
 
 class _AddTargetPageState extends State<AddTargetPage> {
   final titleController = TextEditingController();
-
   final descriptionController = TextEditingController();
-
-  final targetController = TextEditingController();
+  final targetCountController = TextEditingController();
 
   final List<String> categories = [
     'Sholat',
@@ -44,9 +49,6 @@ class _AddTargetPageState extends State<AddTargetPage> {
 
   List<String> selectedDays = [];
 
-  //
-  final targetCountController = TextEditingController();
-
   final List<String> targetUnits = [
     'Tidak Ada',
     'Kali',
@@ -70,17 +72,32 @@ class _AddTargetPageState extends State<AddTargetPage> {
   ];
 
   String selectedCategory = 'Sholat';
-
   String selectedFrequency = 'Harian';
-
   IconData selectedIcon = Icons.mosque_rounded;
-
   bool reminderEnabled = false;
 
   TimeOfDay reminderTime = const TimeOfDay(
     hour: 4,
     minute: 30,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.target != null) {
+      final t = widget.target!;
+      titleController.text = t.title;
+      descriptionController.text = t.subtitle;
+      targetCountController.text = t.targetCount.toString();
+      selectedCategory = t.category;
+      selectedFrequency = t.frequency;
+      selectedIcon = t.icon;
+      selectedDays = List.from(t.activeDays);
+      selectedUnit = t.unit;
+      reminderEnabled = t.reminderEnabled;
+      reminderTime = TimeOfDay(hour: t.reminderHour, minute: t.reminderMinute);
+    }
+  }
 
   Future<void> pickTime() async {
     final picked = await showTimePicker(
@@ -96,40 +113,41 @@ class _AddTargetPageState extends State<AddTargetPage> {
   }
 
   void saveHabit() {
-    if (titleController.text.isEmpty) {
-      return;
-    }
+    if (titleController.text.isEmpty) return;
 
-    // ALL DAYS
     if (selectedDays.isEmpty) {
       selectedDays = weekDays;
     }
 
-    targetList.add(
-      TargetModel(
-        title: titleController.text,
-        subtitle: descriptionController.text,
-        icon: selectedIcon,
-        category: selectedCategory,
-        frequency: selectedFrequency,
-        reminderEnabled: reminderEnabled,
-        reminderHour: reminderTime.hour,
-        reminderMinute: reminderTime.minute,
-        targetCount: int.tryParse(
-              targetCountController.text,
-            ) ??
-            1,
-        activeDays: selectedDays,
-        currentCount: 0,
-        unit: selectedUnit,
-      ),
+    final updatedTarget = TargetModel(
+      title: titleController.text,
+      subtitle: descriptionController.text,
+      icon: selectedIcon,
+      category: selectedCategory,
+      frequency: selectedFrequency,
+      reminderEnabled: reminderEnabled,
+      reminderHour: reminderTime.hour,
+      reminderMinute: reminderTime.minute,
+      targetCount: int.tryParse(targetCountController.text) ?? 1,
+      activeDays: selectedDays,
+      unit: selectedUnit,
     );
+
+    final provider = context.read<TargetProvider>();
+
+    if (widget.targetIndex != null) {
+      provider.updateTarget(widget.targetIndex!, updatedTarget);
+    } else {
+      provider.addTarget(updatedTarget);
+    }
 
     Navigator.pop(context);
   }
 
   // TOGGLE CATEGORY
   void openCategoryModal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -139,13 +157,12 @@ class _AddTargetPageState extends State<AddTargetPage> {
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
             borderRadius: BorderRadius.circular(32),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              /// HANDLE
               Container(
                 width: 52,
                 height: 5,
@@ -154,26 +171,21 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              /// TITLE
-              const Row(
+              Row(
                 children: [
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Text(
                     'Pilih Kategori',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
-              /// CATEGORY LIST
               GridView.builder(
                 shrinkWrap: true,
                 itemCount: categories.length,
@@ -184,12 +196,8 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   mainAxisSpacing: 14,
                   childAspectRatio: 2.8,
                 ),
-                itemBuilder: (
-                  context,
-                  index,
-                ) {
+                itemBuilder: (context, index) {
                   final category = categories[index];
-
                   final selected = selectedCategory == category;
 
                   return GestureDetector(
@@ -197,27 +205,25 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       setState(() {
                         selectedCategory = category;
                       });
-
-                      Navigator.pop(
-                        context,
-                      );
+                      Navigator.pop(context);
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(
-                        milliseconds: 250,
-                      ),
+                      duration: const Duration(milliseconds: 250),
                       decoration: BoxDecoration(
-                        color:
-                            selected ? AppColors.primary : AppColors.secondary,
-                        borderRadius: BorderRadius.circular(
-                          20,
-                        ),
+                        color: selected
+                            ? AppColors.primary
+                            : (isDark
+                                ? const Color(0xff2A2A2A)
+                                : AppColors.secondary),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Center(
                         child: Text(
                           category,
                           style: TextStyle(
-                            color: selected ? Colors.white : AppColors.primary,
+                            color: selected
+                                ? Colors.white
+                                : (isDark ? Colors.white70 : AppColors.primary),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -226,7 +232,6 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   );
                 },
               ),
-
               const SizedBox(height: 20),
             ],
           ),
@@ -237,6 +242,8 @@ class _AddTargetPageState extends State<AddTargetPage> {
 
   // ACTIVE DAYS
   void openDaysModal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -246,47 +253,37 @@ class _AddTargetPageState extends State<AddTargetPage> {
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
             borderRadius: BorderRadius.circular(32),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              /// HANDLE
               Container(
                 width: 52,
                 height: 5,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(
-                    20,
-                  ),
+                  borderRadius: BorderRadius.circular(20),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              /// TITLE
-              const Row(
+              Row(
                 children: [
-                  Icon(
-                    Icons.calendar_month_rounded,
-                    color: AppColors.primary,
-                  ),
-                  SizedBox(width: 10),
+                  const Icon(Icons.calendar_month_rounded,
+                      color: AppColors.primary),
+                  const SizedBox(width: 10),
                   Text(
                     'Hari Aktif',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
-              /// DAYS
               GridView.builder(
                 shrinkWrap: true,
                 itemCount: weekDays.length,
@@ -297,15 +294,9 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   mainAxisSpacing: 14,
                   childAspectRatio: 2.2,
                 ),
-                itemBuilder: (
-                  context,
-                  index,
-                ) {
+                itemBuilder: (context, index) {
                   final day = weekDays[index];
-
-                  final selected = selectedDays.contains(
-                    day,
-                  );
+                  final selected = selectedDays.contains(day);
 
                   return GestureDetector(
                     onTap: () {
@@ -318,21 +309,22 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       });
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(
-                        milliseconds: 250,
-                      ),
+                      duration: const Duration(milliseconds: 250),
                       decoration: BoxDecoration(
-                        color:
-                            selected ? AppColors.primary : AppColors.secondary,
-                        borderRadius: BorderRadius.circular(
-                          18,
-                        ),
+                        color: selected
+                            ? AppColors.primary
+                            : (isDark
+                                ? const Color(0xff2A2A2A)
+                                : AppColors.secondary),
+                        borderRadius: BorderRadius.circular(18),
                       ),
                       child: Center(
                         child: Text(
                           day,
                           style: TextStyle(
-                            color: selected ? Colors.white : AppColors.primary,
+                            color: selected
+                                ? Colors.white
+                                : (isDark ? Colors.white70 : AppColors.primary),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -341,7 +333,6 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   );
                 },
               ),
-
               const SizedBox(height: 24),
             ],
           ),
@@ -352,6 +343,8 @@ class _AddTargetPageState extends State<AddTargetPage> {
 
   // TOGGLE ICON HABIT
   void openIconModal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -361,13 +354,12 @@ class _AddTargetPageState extends State<AddTargetPage> {
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
             borderRadius: BorderRadius.circular(32),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              /// HANDLE
               Container(
                 width: 52,
                 height: 5,
@@ -376,26 +368,21 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              /// TITLE
-              const Row(
+              Row(
                 children: [
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Text(
                     'Pilih Icon Habit',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
-              /// GRID ICON
               GridView.builder(
                 shrinkWrap: true,
                 itemCount: icons.length,
@@ -407,7 +394,6 @@ class _AddTargetPageState extends State<AddTargetPage> {
                 ),
                 itemBuilder: (context, index) {
                   final icon = icons[index];
-
                   final selected = selectedIcon == icon;
 
                   return GestureDetector(
@@ -415,30 +401,29 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       setState(() {
                         selectedIcon = icon;
                       });
-
                       Navigator.pop(context);
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(
-                        milliseconds: 250,
-                      ),
+                      duration: const Duration(milliseconds: 250),
                       decoration: BoxDecoration(
-                        color:
-                            selected ? AppColors.primary : AppColors.secondary,
-                        borderRadius: BorderRadius.circular(
-                          22,
-                        ),
+                        color: selected
+                            ? AppColors.primary
+                            : (isDark
+                                ? const Color(0xff2A2A2A)
+                                : AppColors.secondary),
+                        borderRadius: BorderRadius.circular(22),
                       ),
                       child: Icon(
                         icon,
                         size: 30,
-                        color: selected ? Colors.white : AppColors.primary,
+                        color: selected
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : AppColors.primary),
                       ),
                     ),
                   );
                 },
               ),
-
               const SizedBox(height: 20),
             ],
           ),
@@ -447,24 +432,23 @@ class _AddTargetPageState extends State<AddTargetPage> {
     );
   }
 
-  // SECTION TARGET
-  // SECTION TARGET
+  // UNIT MODAL
   void openUnitModal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled:
-          true, // Membantu agar modal menyesuaikan tinggi konten
+      isScrollControlled: true,
       builder: (_) {
         return Container(
           margin: const EdgeInsets.all(12),
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
             borderRadius: BorderRadius.circular(32),
           ),
           child: SingleChildScrollView(
-            // Tambahkan ini agar konten bisa di-scroll
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -477,14 +461,15 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Row(
+                Row(
                   children: [
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
                       'Pilih Satuan',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                   ],
@@ -498,15 +483,17 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       setState(() {
                         selectedUnit = e;
                       });
-
                       Navigator.pop(context);
                     },
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color:
-                            selected ? AppColors.primary : AppColors.background,
+                        color: selected
+                            ? AppColors.primary
+                            : (isDark
+                                ? const Color(0xff2A2A2A)
+                                : AppColors.background),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -515,8 +502,9 @@ class _AddTargetPageState extends State<AddTargetPage> {
                             child: Text(
                               e,
                               style: TextStyle(
-                                color:
-                                    selected ? Colors.white : AppColors.black,
+                                color: selected
+                                    ? Colors.white
+                                    : (isDark ? Colors.white : AppColors.black),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -530,7 +518,7 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       ),
                     ),
                   );
-                }).toList(),
+                }),
                 const SizedBox(height: 12),
               ],
             ),
@@ -542,27 +530,27 @@ class _AddTargetPageState extends State<AddTargetPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: const Icon(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
             Icons.arrow_back,
-            color: AppColors.primary,
+            color: isDark ? Colors.white : AppColors.primary,
             size: 24,
           ),
         ),
         centerTitle: true,
-        title: const Text(
-          'Tambah Habit',
+        title: Text(
+          widget.targetIndex != null ? 'Edit Habit' : 'Tambah Habit',
           style: TextStyle(
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -576,15 +564,13 @@ class _AddTargetPageState extends State<AddTargetPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  20,
-                ),
+                borderRadius: BorderRadius.circular(20),
               ),
             ),
             onPressed: saveHabit,
-            child: const Text(
-              'Simpan Habit',
-              style: TextStyle(
+            child: Text(
+              widget.targetIndex != null ? 'Perbarui Habit' : 'Simpan Habit',
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -599,44 +585,40 @@ class _AddTargetPageState extends State<AddTargetPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// TITLE
-            const Text(
+            Text(
               'Nama Habit',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white70 : Colors.black87,
               ),
             ),
-
             const SizedBox(height: 10),
-
             TextField(
               controller: titleController,
               keyboardType: TextInputType.text,
               textInputAction: TextInputAction.next,
-              decoration: inputDecoration(
-                'Contoh: Sholat Tahajud',
-              ),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+              decoration: inputDecoration('Contoh: Sholat Tahajud', isDark),
             ),
 
             const SizedBox(height: 22),
 
             /// DESCRIPTION
-            const Text(
+            Text(
               'Deskripsi',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white70 : Colors.black87,
               ),
             ),
-
             const SizedBox(height: 10),
-
             TextField(
               controller: descriptionController,
               maxLines: 3,
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
-              decoration: inputDecoration(
-                'Tambahkan deskripsi habit',
-              ),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+              decoration: inputDecoration('Tambahkan deskripsi habit', isDark),
             ),
 
             const SizedBox(height: 22),
@@ -647,8 +629,15 @@ class _AddTargetPageState extends State<AddTargetPage> {
               child: Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                   borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                      blurRadius: 12,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -656,12 +645,16 @@ class _AddTargetPageState extends State<AddTargetPage> {
                     Expanded(
                       child: Text(
                         selectedCategory,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ),
-                    const Icon(Icons.keyboard_arrow_down_rounded),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: isDark ? Colors.white54 : AppColors.grey,
+                    ),
                   ],
                 ),
               ),
@@ -670,15 +663,14 @@ class _AddTargetPageState extends State<AddTargetPage> {
             const SizedBox(height: 22),
 
             /// FREQUENCY
-            const Text(
+            Text(
               'Frekuensi',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white70 : Colors.black87,
               ),
             ),
-
             const SizedBox(height: 14),
-
             Row(
               children: frequencies.map((e) {
                 final selected = selectedFrequency == e;
@@ -691,26 +683,32 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       });
                     },
                     child: AnimatedContainer(
-                      duration: const Duration(
-                        milliseconds: 250,
-                      ),
-                      margin: const EdgeInsets.only(
-                        right: 10,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 14,
-                      ),
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.only(right: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: selected ? AppColors.primary : AppColors.white,
-                        borderRadius: BorderRadius.circular(
-                          18,
-                        ),
+                        color: selected
+                            ? AppColors.primary
+                            : (isDark
+                                ? const Color(0xff1E1E1E)
+                                : AppColors.white),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                            blurRadius: 12,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: Center(
                         child: Text(
                           e,
                           style: TextStyle(
-                            color: selected ? Colors.white : AppColors.black,
+                            color: selected
+                                ? Colors.white
+                                : (isDark ? Colors.white : AppColors.black),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -724,74 +722,78 @@ class _AddTargetPageState extends State<AddTargetPage> {
             const SizedBox(height: 22),
 
             /// ACTIVE DAYS
-            const Text(
+            Text(
               'Hari Aktif',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white70 : Colors.black87,
               ),
             ),
-
             const SizedBox(height: 14),
-
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: GestureDetector(
-                onTap: openDaysModal,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.calendar_month_rounded,
-                          color: AppColors.primary,
-                        ),
+            GestureDetector(
+              onTap: openDaysModal,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                      blurRadius: 12,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xff2A2A2A)
+                            : AppColors.secondary,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Hari Aktif',
-                              style: TextStyle(
-                                color: AppColors.grey,
-                                fontSize: 12,
-                              ),
+                      child: const Icon(
+                        Icons.calendar_month_rounded,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Hari Aktif',
+                            style: TextStyle(
+                              color: AppColors.grey,
+                              fontSize: 12,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              selectedDays.isEmpty
-                                  ? 'Pilih hari aktif'
-                                  : selectedDays.toSet().join(', '),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            selectedDays.isEmpty
+                                ? 'Pilih hari aktif'
+                                : selectedDays.toSet().join(', '),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
-                          ],
-                        ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      const Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                      ),
-                    ],
-                  ),
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: isDark ? Colors.white54 : AppColors.grey,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -805,8 +807,15 @@ class _AddTargetPageState extends State<AddTargetPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                   borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                      blurRadius: 12,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -814,7 +823,9 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.secondary,
+                        color: isDark
+                            ? const Color(0xff2A2A2A)
+                            : AppColors.secondary,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
@@ -823,30 +834,32 @@ class _AddTargetPageState extends State<AddTargetPage> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Icon Habit',
                             style: TextStyle(
                               color: AppColors.grey,
                               fontSize: 12,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             'Pilih icon habit',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
+                      color: isDark ? Colors.white54 : AppColors.grey,
                     ),
                   ],
                 ),
@@ -856,15 +869,14 @@ class _AddTargetPageState extends State<AddTargetPage> {
             const SizedBox(height: 22),
 
             /// TARGET COUNT
-            const Text(
+            Text(
               'Target Ibadah',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white70 : Colors.black87,
               ),
             ),
-
             const SizedBox(height: 14),
-
             Row(
               children: [
                 Expanded(
@@ -873,9 +885,9 @@ class _AddTargetPageState extends State<AddTargetPage> {
                     controller: targetCountController,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
-                    decoration: inputDecoration(
-                      'Jumlah',
-                    ),
+                    style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87),
+                    decoration: inputDecoration('Jumlah', isDark),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -883,27 +895,34 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   child: GestureDetector(
                     onTap: openUnitModal,
                     child: Container(
-                      padding: const EdgeInsets.all(
-                        18,
-                      ),
+                      padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(
-                          22,
-                        ),
+                        color:
+                            isDark ? const Color(0xff1E1E1E) : AppColors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                            blurRadius: 12,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
                               selectedUnit,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ),
-                          const Icon(
+                          Icon(
                             Icons.keyboard_arrow_down_rounded,
+                            color: isDark ? Colors.white54 : AppColors.grey,
                           ),
                         ],
                       ),
@@ -919,10 +938,15 @@ class _AddTargetPageState extends State<AddTargetPage> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(
-                  24,
-                ),
+                color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                    blurRadius: 12,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -932,14 +956,13 @@ class _AddTargetPageState extends State<AddTargetPage> {
                         Icons.notifications_active_rounded,
                         color: AppColors.primary,
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                      const Expanded(
+                      const SizedBox(width: 12),
+                      Expanded(
                         child: Text(
                           'Aktifkan Reminder',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                       ),
@@ -956,36 +979,32 @@ class _AddTargetPageState extends State<AddTargetPage> {
                   if (reminderEnabled)
                     Column(
                       children: [
-                        const SizedBox(
-                          height: 18,
-                        ),
+                        const SizedBox(height: 18),
                         GestureDetector(
                           onTap: pickTime,
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(
-                              16,
-                            ),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(
-                                18,
-                              ),
+                              color: isDark
+                                  ? const Color(0xff2A2A2A)
+                                  : AppColors.background,
+                              borderRadius: BorderRadius.circular(18),
                             ),
                             child: Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.access_time_rounded,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
                                 ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
+                                const SizedBox(width: 12),
                                 Text(
-                                  reminderTime.format(
-                                    context,
-                                  ),
-                                  style: const TextStyle(
+                                  reminderTime.format(context),
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
                                   ),
                                 ),
                               ],
@@ -1005,13 +1024,12 @@ class _AddTargetPageState extends State<AddTargetPage> {
     );
   }
 
-  InputDecoration inputDecoration(
-    String hint,
-  ) {
+  InputDecoration inputDecoration(String hint, bool isDark) {
     return InputDecoration(
       hintText: hint,
+      hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.grey),
       filled: true,
-      fillColor: AppColors.white,
+      fillColor: isDark ? const Color(0xff1E1E1E) : AppColors.white,
       contentPadding: const EdgeInsets.all(18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(22),

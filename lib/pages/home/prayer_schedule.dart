@@ -44,6 +44,7 @@ class PrayerSchedulePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final provider = context.watch<PrayerProvider>();
 
     final prayerData = provider.prayerData as Map<String, dynamic>;
@@ -98,7 +99,7 @@ class PrayerSchedulePage extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -119,10 +120,10 @@ class PrayerSchedulePage extends StatelessWidget {
           ),
         ),
 
-        title: const Text(
+        title: Text(
           'Prayer Schedule',
           style: TextStyle(
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -163,11 +164,11 @@ class PrayerSchedulePage extends StatelessWidget {
                   vertical: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -183,15 +184,15 @@ class PrayerSchedulePage extends StatelessWidget {
                     Expanded(
                       child: Text(
                         context.watch<PrayerProvider>().cityName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.black,
+                          color: isDark ? Colors.white : AppColors.black,
                         ),
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.grey,
+                      color: isDark ? Colors.white54 : AppColors.grey,
                     ),
                   ],
                 ),
@@ -210,8 +211,8 @@ class PrayerSchedulePage extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [
-                    Color(0xff2E7D32),
-                    Color(0xff2E7D32),
+                    AppColors.primary,
+                    AppColors.primary,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -295,11 +296,11 @@ class PrayerSchedulePage extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                       blurRadius: 14,
                       offset: const Offset(0, 10),
                     ),
@@ -307,7 +308,7 @@ class PrayerSchedulePage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -316,14 +317,14 @@ class PrayerSchedulePage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.black,
+                              color: isDark ? Colors.white : AppColors.black,
                             ),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
                             'Menghadap Utara',
                             style: TextStyle(
-                              color: AppColors.grey,
+                              color: isDark ? Colors.white54 : AppColors.grey,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -379,13 +380,15 @@ class _PrayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 18,
         vertical: 18,
       ),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
           color: isActive
@@ -394,7 +397,7 @@ class _PrayerTile extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -406,7 +409,9 @@ class _PrayerTile extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: isActive ? AppColors.primary : AppColors.secondary,
+              color: isActive
+                  ? AppColors.primary
+                  : (isDark ? const Color(0xff2A2A2A) : AppColors.secondary),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Icon(
@@ -427,14 +432,16 @@ class _PrayerTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isActive ? AppColors.primary : AppColors.black,
+                    color: isActive
+                        ? AppColors.primary
+                        : (isDark ? Colors.white : AppColors.black),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   isActive ? 'Waktu sholat saat ini' : 'Sholat berikutnya',
-                  style: const TextStyle(
-                    color: AppColors.grey,
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : AppColors.grey,
                     fontSize: 12,
                   ),
                 ),
@@ -446,7 +453,9 @@ class _PrayerTile extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isActive ? AppColors.primary : AppColors.black,
+              color: isActive
+                  ? AppColors.primary
+                  : (isDark ? Colors.white : AppColors.black),
             ),
           ),
         ],
@@ -466,6 +475,8 @@ class _CircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
@@ -473,11 +484,11 @@ class _CircleButton extends StatelessWidget {
         width: 42,
         height: 42,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),

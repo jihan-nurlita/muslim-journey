@@ -467,6 +467,112 @@ List<DoaModel> doaList = [
     keterangan: "",
   ),
   DoaModel(
+    judul: "Shalawat Nariyah",
+    kategori: ["Shalawat"],
+    arab:
+        "اللَّهُمَّ صَلِّ صَلَاةً كَامِلَةً وَسَلِّمْ سَلَامًا تَامًّا عَلَىٰ سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَىٰ بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَىٰ آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ",
+    latin:
+        "Allahumma sholli sholaatan kaamilatan wa sallim salaaman taamman 'alaa sayyidinaa Muhammadinilladzi tanhallu bihil 'uqadu wa tanfariju bihil kurabu wa tuqdhaa bihil hawaa-iju wa tunaalu bihir raghaa-ibu wa husnul khawaatimi wa yustasqal ghomaamu biwajhihil kariimi wa 'alaa aalihi wa shahbihi fii kulli lamhatin wa nafasin bi'adadi kulli ma'luumin lak.",
+    arti:
+        "Ya Allah, limpahkanlah shalawat yang sempurna dan salam yang sempurna kepada junjungan kami Nabi Muhammad, yang dengannya segala ikatan terurai, segala kesusahan dilapangkan, segala kebutuhan ditunaikan, segala keinginan dan akhir yang baik diperoleh, serta hujan dimohonkan melalui wajah beliau yang mulia. Semoga shalawat dan salam juga tercurah kepada keluarga dan para sahabat beliau, pada setiap kedipan mata dan hembusan napas, sebanyak segala sesuatu yang Engkau ketahui.",
+    dalil: "",
+    keterangan:
+        "Shalawat kepada Nabi Muhammad SAW. Dapat dibaca sebagai bentuk kecintaan dan penghormatan kepada Rasulullah SAW. dengan tetap meyakini bahwa pertolongan dan pengabulan doa berasal dari Allah SWT.",
+  ),
+  DoaModel(
+    judul: "Shalawat Syifa",
+    kategori: ["Shalawat"],
+    arab:
+        "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ طِبِّ الْقُلُوبِ وَدَوَائِهَا، وَعَافِيَةِ الْأَبْدَانِ وَشِفَائِهَا، وَنُورِ الْأَبْصَارِ وَضِيَائِهَا، وَعَلَى آلِهِ وَصَحْبِهِ وَسَلِّمْ",
+    latin:
+        "Allahumma shalli 'ala sayyidina Muhammadin thibbil qulubi wa dawa-iha, wa 'afiyatil abdani wa syifa-iha, wa nuril abshari wa dhiya-iha, wa 'ala alihi wa shahbihi wa sallim.",
+    arti:
+        "Ya Allah, limpahkanlah shalawat kepada junjungan kami Nabi Muhammad, sebagai penawar hati dan obatnya, kesehatan badan dan kesembuhannya, cahaya penglihatan dan sinarnya. Dan limpahkanlah pula shalawat dan salam kepada keluarga serta para sahabat beliau.",
+    dalil: "",
+    keterangan:
+        "Dikenal juga sebagai Shalawat Thibbiyah. Dibaca sebagai ungkapan cinta kepada Rasulullah SAW. dan doa memohon kesehatan serta kesembuhan kepada Allah SWT. Kesembuhan hakikatnya berasal dari Allah.",
+  ),
+  DoaModel(
+    judul: "Sholawat Nuril Anwar",
+    kategori: ["Shalawat"],
+    arab:
+        "اللَّهُمَّ صَلِّ عَلَى نُورِ الْأَنْوَارِ وَسِرِّ الْأَسْرَارِ وَتِرْيَاقِ الْأَغْيَارِ وَمِفْتَاحِ بَابِ الْيَسَارِ سَيِّدِنَا وَمَوْلَانَا مُحَمَّدٍ الْمُخْتَارِ وَآلِهِ الْأَطْهَارِ وَأَصْحَابِهِ الْأَخْيَارِ عَدَدَ نِعَمِ اللَّهِ وَإِفْضَالِهِ",
+    latin:
+        "Allahumma shalli 'ala nuril anwari wa sirril asrari wa tiryaqil aghyari wa miftahi babil yasari, sayyidina wa maulana Muhammadinil mukhtari, wa alihil athhari wa ashabihil akhyari, 'adada ni'amillahi wa ifdhalih.",
+    arti:
+        "Ya Allah, limpahkanlah shalawat kepada cahaya segala cahaya, rahasia segala rahasia, penawar segala kesulitan, dan pembuka pintu kemudahan, junjungan dan pemimpin kami Nabi Muhammad yang terpilih, beserta keluarga beliau yang suci dan para sahabat yang baik, sebanyak nikmat dan karunia Allah.",
+    dalil: "",
+    keterangan:
+        "Dibaca sebagai bentuk kecintaan dan penghormatan kepada Rasulullah SAW. serta doa memohon kemudahan kepada Allah SWT.",
+  ),
+  DoaModel(
+    judul: "Sholawat Sa'adah",
+    kategori: ["Shalawat"],
+    arab:
+        "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ عَدَدَ مَا فِي عِلْمِ اللَّهِ صَلَاةً دَائِمَةً بِدَوَامِ مُلْكِ اللَّهِ",
+    latin:
+        "Allahumma shalli 'ala sayyidina Muhammadin 'adada ma fi 'ilmillah, shalatan da'imatan bidawami mulkillah.",
+    arti:
+        "Ya Allah, limpahkanlah rahmat dan keselamatan kepada junjungan kami Nabi Muhammad SAW dan kepada keluarga Nabi Muhammad SAW, sebanyak bilangan yang ada dalam pengetahuan Allah, dengan curahan rahmat yang kekal selamanya seiring dengan kekalnya kerajaan Allah.",
+    dalil: "",
+    keterangan:
+        "Shalawat yang berisi permohonan agar shalawat kepada Nabi Muhammad SAW. senantiasa dilimpahkan secara terus-menerus.",
+  ),
+  DoaModel(
+    judul: "Sholawat Kamaliyah",
+    kategori: ["Shalawat"],
+    arab:
+        "اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى سَيِّدِنَا مُحَمَّدٍ وَعَلَى آلِهِ عَدَدَ كَمَالِ اللَّهِ وَكَمَا يَلِيقُ بِكَمَالِهِ",
+    latin:
+        "Allahumma shalli wa sallim wa barik 'ala sayyidina Muhammadin wa 'ala alihi, 'adada kamalillah wa kama yaliqu bikamalih.",
+    arti:
+        "Ya Allah, limpahkanlah shalawat, salam, dan berkah kepada junjungan kami Nabi Muhammad dan keluarganya sebanyak kesempurnaan Allah dan sebagaimana yang layak bagi kesempurnaan-Nya.",
+    dalil: "",
+    keterangan:
+        "Berisi permohonan shalawat, salam, dan berkah kepada Nabi Muhammad SAW. serta keluarga beliau.",
+  ),
+
+  DoaModel(
+    judul: "Shalawat Asyghil",
+    kategori: ["Shalawat"],
+    arab:
+        "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ وَأَشْغِلِ الظَّالِمِينَ بِالظَّالِمِينَ وَأَخْرِجْنَا مِنْ بَيْنِهِمْ سَالِمِينَ وَعَلَى آلِهِ وَصَحْبِهِ أَجْمَعِينَ",
+    latin:
+        "Allahumma shalli 'ala sayyidina Muhammadin, wa asyghilizh-zhalimina bizh-zhalimina, wa akhrijna min bainihim salimin, wa 'ala alihi wa shahbihi ajma'in.",
+    arti:
+        "Ya Allah, limpahkanlah shalawat kepada junjungan kami Nabi Muhammad. Sibukkanlah orang-orang zalim dengan sesama orang zalim, dan selamatkanlah kami dari kejahatan mereka. Limpahkanlah pula shalawat kepada keluarga dan seluruh sahabat beliau.",
+    dalil: "",
+    keterangan:
+        "Shalawat yang berisi doa agar Allah melindungi umat dari kezaliman dan memberikan keselamatan. Pertolongan dan perlindungan dimohonkan kepada Allah SWT.",
+  ),
+  DoaModel(
+    judul: "Sholawat Tibbil Qulub",
+    kategori: ["Shalawat"],
+    arab:
+        "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ طِبِّ الْقُلُوبِ وَدَوَائِهَا، وَعَافِيَةِ الْأَبْدَانِ وَشِفَائِهَا، وَنُورِ الْأَبْصَارِ وَضِيَائِهَا، وَعَلَى آلِهِ وَصَحْبِهِ وَسَلِّمْ",
+    latin:
+        "Allahumma shalli 'ala sayyidina Muhammadin thibbil qulubi wa dawa-iha, wa 'afiyatil abdani wa syifa-iha, wa nuril abshari wa dhiya-iha, wa 'ala alihi wa shahbihi wa sallim.",
+    arti:
+        "Ya Allah, limpahkanlah shalawat kepada junjungan kami Nabi Muhammad, penawar hati dan obatnya, kesehatan badan dan kesembuhannya, cahaya penglihatan dan sinarnya. Limpahkanlah pula shalawat dan salam kepada keluarga serta sahabat beliau.",
+    dalil: "",
+    keterangan:
+        "Dikenal sebagai shalawat untuk memohon kesehatan dan kesembuhan kepada Allah SWT.",
+  ),
+  DoaModel(
+    judul: "Sholawat Badar",
+    kategori: ["Shalawat"],
+    arab:
+        "صَلَاةُ اللهِ سَلَامُ اللهِ عَلَى طهَ رَسُولِ اللهِ\nصَلَاةُ اللهِ سَلَامُ اللهِ عَلَى يس حَبِيبِ اللهِ\nتَوَسَّلْنَا بِبِسْمِ اللهِ وَبِالْهَادِي رَسُولِ اللهِ\nوَكُلِّ مُجَاهِدٍ لِلَّهِ بِأَهْلِ بَدْرٍ يَا اللهُ",
+    latin:
+        "Shalaatullaah salaamullaah, 'alaa Thaaha Rasuulillaah. Shalaatullaah salaamullaah, 'alaa Yaasiin Habiibillaah. Tawassalnaa bibismillaah, wa bil-haadi Rasuulillaah. Wa kulli mujaahidin lillaah, bi ahli Badrin yaa Allah.",
+    arti:
+        "Rahmat dan keselamatan Allah semoga tetap untuk Thaha (Nabi Muhammad), utusan Allah. Rahmat dan keselamatan Allah semoga tetap untuk Yasin (Nabi Muhammad), kekasih Allah. Kami bertawassul dengan berkah bismillah, dan dengan Nabi yang menunjukkan jalan, utusan Allah. Dan berserah diri dari setiap orang yang berjuang di jalan Allah, sebab berkahnya ahli Badar, ya Allah.  ",
+    dalil: "",
+    keterangan:
+        "Sholawat yang berisi pujian kepada Rasulullah SAW. dan penghormatan kepada para sahabat yang mengikuti Perang Badar. Dikenal luas dalam tradisi Islam, khususnya di Indonesia.",
+  ),
+
+  DoaModel(
     judul: "Shalawat Fatih",
     kategori: ["Shalawat"],
     arab:

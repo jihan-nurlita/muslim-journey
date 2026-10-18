@@ -20,23 +20,18 @@ class DzikirDetailPage extends StatefulWidget {
 
 class _DzikirDetailPageState extends State<DzikirDetailPage> {
   int count = 0;
-
   late int target;
-
   bool isAuto = false;
-
   Timer? autoTimer;
 
   @override
   void initState() {
     super.initState();
-
     target = widget.dzikir.target;
   }
 
   double get progress {
     if (target == 0) return 0;
-
     return count / target;
   }
 
@@ -56,11 +51,9 @@ class _DzikirDetailPageState extends State<DzikirDetailPage> {
     });
   }
 
-  //
   void toggleAuto() {
     if (isAuto) {
       autoTimer?.cancel();
-
       setState(() {
         isAuto = false;
       });
@@ -74,11 +67,9 @@ class _DzikirDetailPageState extends State<DzikirDetailPage> {
         (timer) {
           if (count >= target) {
             timer.cancel();
-
             setState(() {
               isAuto = false;
             });
-
             return;
           }
 
@@ -96,16 +87,19 @@ class _DzikirDetailPageState extends State<DzikirDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Mengecek apakah mode gelap sedang aktif
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         title: Text(
           widget.dzikir.title,
-          style: const TextStyle(
-            color: AppColors.black,
+          style: TextStyle(
+            color: isDark ? Colors.white : AppColors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -121,184 +115,265 @@ class _DzikirDetailPageState extends State<DzikirDetailPage> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(26),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(32),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-                child: Column(
-                  children: [
-                    Text(
-                      widget.dzikir.arab,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.notoNaskhArabic(
-                        fontSize: 32,
-                        height: 2,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      widget.dzikir.latin,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.dzikir.meaning,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        height: 1.7,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-              Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.08),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 280,
-                      height: 280,
-                      child: CircularProgressIndicator(
-                        value: progress,
-                        strokeWidth: 14,
-                        backgroundColor: AppColors.secondary,
-                        valueColor: const AlwaysStoppedAnimation(
-                          AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '$count',
-                          style: const TextStyle(
-                            fontSize: 70,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                        /// CARD ARAB & ARTI
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 18,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xff1E1E1E)
+                                : AppColors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(isDark ? 0.2 : 0.03),
+                                blurRadius: 12,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                widget.dzikir.arab,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.notoNaskhArabic(
+                                  fontSize: 22,
+                                  height: 1.8,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                widget.dzikir.latin,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                widget.dzikir.meaning,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color:
+                                      isDark ? Colors.white54 : Colors.black54,
+                                  height: 1.4,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        GestureDetector(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.secondary,
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: Text(
-                              'Target $target',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
+
+                        const SizedBox(height: 16),
+
+                        /// CIRCULAR COUNTER
+                        Container(
+                          width: 220,
+                          height: 220,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isDark
+                                ? const Color(0xff1E1E1E)
+                                : AppColors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary
+                                    .withOpacity(isDark ? 0.15 : 0.08),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 220,
+                                height: 220,
+                                child: CircularProgressIndicator(
+                                  value: progress,
+                                  strokeWidth: 12,
+                                  backgroundColor: isDark
+                                      ? const Color(0xff2A2A2A)
+                                      : AppColors.secondary,
+                                  valueColor: const AlwaysStoppedAnimation(
+                                    AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '$count',
+                                    style: const TextStyle(
+                                      fontSize: 54,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+
+                                  /// BADGE TARGET ANGKA ASLI
+                                  Container(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 170,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xff2A2A2A)
+                                          : AppColors.secondary,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'Target $target',
+                                        style: const TextStyle(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        /// TOMBOL TAP, REFRESH & PLAY/PAUSE
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: incrementCounter,
+                              child: Container(
+                                width: double.infinity,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xff43A36E),
+                                      Color(0xff1F6B48),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'TAP DZIKIR +1',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: resetCounter,
+                                    child: Container(
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? const Color(0xff1E1E1E)
+                                            : AppColors.white,
+                                        borderRadius: BorderRadius.circular(18),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                                isDark ? 0.2 : 0.03),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.refresh_rounded,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: toggleAuto,
+                                    child: Container(
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: isAuto
+                                            ? AppColors.primary
+                                            : (isDark
+                                                ? const Color(0xff1E1E1E)
+                                                : AppColors.white),
+                                        borderRadius: BorderRadius.circular(18),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                                isDark ? 0.2 : 0.03),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        isAuto
+                                            ? Icons.pause_rounded
+                                            : Icons.play_arrow_rounded,
+                                        color: isAuto
+                                            ? Colors.white
+                                            : AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-              GestureDetector(
-                onTap: incrementCounter,
-                child: Container(
-                  width: double.infinity,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xff43A36E),
-                        Color(0xff1F6B48),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'TAP DZIKIR +1',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                      ),
-                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: resetCounter,
-                      child: Container(
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        child: const Icon(
-                          Icons.refresh_rounded,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: toggleAuto,
-                      child: Container(
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: isAuto ? AppColors.primary : AppColors.white,
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        child: Icon(
-                          isAuto
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded,
-                          color: isAuto ? Colors.white : AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

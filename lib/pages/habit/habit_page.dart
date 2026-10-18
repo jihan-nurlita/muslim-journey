@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
-import 'package:muslim_journey/pages/habit/calendar_habit_page.dart';
-import 'package:muslim_journey/pages/home/home_page.dart';
-import 'package:muslim_journey/pages/notification/notification_page.dart';
-import 'package:muslim_journey/pages/profile/profile_page.dart';
 import 'package:muslim_journey/pages/habit/add_target_page.dart';
-import 'package:muslim_journey/pages/target/data/target_data.dart';
-import 'package:muslim_journey/pages/target/target_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:muslim_journey/pages/habit/calendar_habit_page.dart';
+import 'package:muslim_journey/pages/navigation/custom_bottom_navbar.dart';
+import 'package:muslim_journey/pages/target/models/target_model.dart';
+import 'package:muslim_journey/providers/target_provider.dart';
+import 'package:provider/provider.dart';
 
 class HabitPage extends StatefulWidget {
   const HabitPage({super.key});
@@ -20,14 +17,7 @@ class HabitPage extends StatefulWidget {
 class _HabitPageState extends State<HabitPage> {
   final ScrollController _scrollController = ScrollController();
 
-  /// tanggal aktif
   DateTime selectedDate = DateTime.now();
-
-  /// tanggal yang pernah dibuka
-  Set<int> viewedDates = {};
-
-  /// Menyimpan progres harian dalam memori: { "2026-09-13_NamaTarget": currentCount }
-  Map<String, int> dailyProgress = {};
 
   final List<String> categories = [
     'Semua',
@@ -40,79 +30,44 @@ class _HabitPageState extends State<HabitPage> {
 
   String selectedCategory = 'Semua';
 
-  List get filteredTargets {
-    if (selectedCategory == 'Semua') {
-      return targetList;
-    }
-
-    return targetList.where((target) {
-      return target.category == selectedCategory;
-    }).toList();
-  }
-
-  /// Helper untuk membuat format string unik berdasarkan tanggal (YYYY-MM-DD)
-  String get _dateKey {
-    return "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
-  }
-
-  /// Helper untuk mendapatkan jumlah hitungan habit spesifik pada tanggal aktif
-  int _getCurrentCountForTarget(String targetTitle) {
-    final key = "${_dateKey}_$targetTitle";
-    return dailyProgress[key] ?? 0;
-  }
-
   @override
   void initState() {
     super.initState();
-    _loadHabitData();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final today = DateTime.now().day;
-
-      /// lebar item + margin
       const itemWidth = 77.0;
 
-      _scrollController.animateTo(
-        (today - 1) * itemWidth,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          (today - 1) * itemWidth,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
     });
-  }
-
-  /// Memuat data habit harian dari SharedPreferences
-  Future<void> _loadHabitData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? savedData = prefs.getString('daily_habit_progress');
-
-    if (savedData != null) {
-      final Map<String, dynamic> decoded = jsonDecode(savedData);
-      setState(() {
-        dailyProgress =
-            decoded.map((key, value) => MapEntry(key, value as int));
-      });
-    }
-  }
-
-  /// Menyimpan data habit harian ke SharedPreferences
-  Future<void> _saveHabitData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('daily_habit_progress', jsonEncode(dailyProgress));
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final targetProvider = context.watch<TargetProvider>();
+    final List<TargetModel> allTargets = targetProvider.targets;
+
+    final List<TargetModel> filteredTargets = selectedCategory == 'Semua'
+        ? allTargets
+        : allTargets
+            .where((target) => target.category == selectedCategory)
+            .toList();
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: AppColors.background,
-
-      bottomNavigationBar: const _BottomNavbar(currentIndex: 2),
-
-      /// FLOATING BUTTON
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      bottomNavigationBar: const CustomBottomNavbar(currentIndex: 2),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(15),
         ),
         onPressed: () async {
           await Navigator.push(
@@ -121,8 +76,6 @@ class _HabitPageState extends State<HabitPage> {
               builder: (_) => const AddTargetPage(),
             ),
           );
-
-          setState(() {});
         },
         child: const Icon(
           Icons.add,
@@ -130,7 +83,6 @@ class _HabitPageState extends State<HabitPage> {
           color: Colors.white,
         ),
       ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -141,13 +93,14 @@ class _HabitPageState extends State<HabitPage> {
               Row(
                 children: [
                   const SizedBox(width: 30),
-                  const Expanded(
+                  Expanded(
                     child: Center(
                       child: Text(
                         "Habit Ibadah",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ),
@@ -155,9 +108,11 @@ class _HabitPageState extends State<HabitPage> {
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const CalendarHabitPage()));
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CalendarHabitPage(),
+                        ),
+                      );
                     },
                     child: Container(
                       width: 36,
@@ -206,11 +161,12 @@ class _HabitPageState extends State<HabitPage> {
                       'Min',
                     ];
 
-                    /// tanggal yang dipilih
-                    final isSelected = selectedDate.day == date.day;
-
-                    /// tanggal hari ini
-                    final isToday = DateTime.now().day == date.day;
+                    final isSelected = selectedDate.day == date.day &&
+                        selectedDate.month == date.month &&
+                        selectedDate.year == date.year;
+                    final isToday = DateTime.now().day == date.day &&
+                        DateTime.now().month == date.month &&
+                        DateTime.now().year == date.year;
 
                     return GestureDetector(
                       onTap: () {
@@ -219,6 +175,7 @@ class _HabitPageState extends State<HabitPage> {
                         });
                       },
                       child: _buildDateItem(
+                        context: context,
                         day: days[date.weekday - 1],
                         date: date.day.toString(),
                         isSelected: isSelected,
@@ -245,6 +202,7 @@ class _HabitPageState extends State<HabitPage> {
                         });
                       },
                       child: _buildCategoryChip(
+                        context: context,
                         title: category,
                         selected: isSelected,
                       ),
@@ -255,43 +213,198 @@ class _HabitPageState extends State<HabitPage> {
 
               const SizedBox(height: 22),
 
-              /// HABIT LIST
+              /// HABIT LIST WITH DISMISSIBLE
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  itemCount: filteredTargets.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final target = filteredTargets[index];
+                child: filteredTargets.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Belum ada habit. Yuk tambah!',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white54 : Colors.grey,
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.only(bottom: 100),
+                        itemCount: filteredTargets.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          final TargetModel target = filteredTargets[index];
 
-                    // Hitungan spesifik untuk tanggal yang dipilih
-                    final currentCount =
-                        _getCurrentCountForTarget(target.title);
-                    final isCompleted = currentCount >= target.targetCount;
+                          final int currentCount =
+                              targetProvider.getProgressForDate(
+                            target.title,
+                            selectedDate,
+                          );
+                          final bool isCompleted =
+                              currentCount >= target.targetCount;
 
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          final key = "${_dateKey}_${target.title}";
-                          if (currentCount < target.targetCount) {
-                            dailyProgress[key] = currentCount + 1;
-                          } else {
-                            dailyProgress[key] = 0;
-                          }
-                        });
-                        _saveHabitData();
-                      },
-                      child: _buildHabitTile(
-                        icon: target.icon,
-                        title: target.title,
-                        subtitle:
-                            '$currentCount/${target.targetCount} ${target.unit}',
-                        schedule: '${target.frequency} • ${target.category}',
-                        completed: isCompleted,
+                          final originalIndex = allTargets.indexOf(target);
+
+                          return Dismissible(
+                            key: Key('${target.title}_$index'),
+                            confirmDismiss: (direction) async {
+                              if (direction == DismissDirection.startToEnd) {
+                                // SWIPE KANAN: HAPUS
+                                return await showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor: isDark
+                                          ? const Color(0xff1E1E1E)
+                                          : Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      title: Text(
+                                        "Hapus Habit",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                      content: Text(
+                                        "Apakah kamu yakin ingin menghapus '${target.title}'?",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
+                                          child: Text(
+                                            "Batal",
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white54
+                                                  : AppColors.grey,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                          ),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(true),
+                                          child: const Text(
+                                            "Hapus",
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              } else if (direction ==
+                                  DismissDirection.endToStart) {
+                                // SWIPE KIRI: EDIT
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AddTargetPage(
+                                      target: target,
+                                      targetIndex: originalIndex,
+                                    ),
+                                  ),
+                                );
+                                return false;
+                              }
+                              return false;
+                            },
+                            onDismissed: (direction) {
+                              if (direction == DismissDirection.startToEnd) {
+                                targetProvider.deleteTarget(originalIndex);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        '${target.title} berhasil dihapus'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            },
+                            background: Container(
+                              alignment: Alignment.centerLeft,
+                              padding: const EdgeInsets.only(left: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade400,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.delete_rounded,
+                                      color: Colors.white, size: 28),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Hapus',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            secondaryBackground: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade400,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(Icons.edit_rounded,
+                                      color: Colors.white, size: 28),
+                                ],
+                              ),
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                targetProvider.updateHabitProgressForDate(
+                                  target.title,
+                                  target.targetCount,
+                                  selectedDate,
+                                );
+                              },
+                              child: _buildHabitTile(
+                                context: context,
+                                icon: target.icon,
+                                title: target.title,
+                                subtitle:
+                                    '$currentCount/${target.targetCount} ${target.unit}',
+                                schedule:
+                                    '${target.frequency} ${target.category}',
+                                completed: isCompleted,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ],
           ),
@@ -302,20 +415,26 @@ class _HabitPageState extends State<HabitPage> {
 
   /// DATE ITEM
   Widget _buildDateItem({
+    required BuildContext context,
     required String day,
     required String date,
     required bool isSelected,
     required bool isToday,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Color itemBgColor = isDark ? const Color(0xff1E1E1E) : Colors.white;
+    if (isSelected) {
+      itemBgColor = AppColors.primary;
+    } else if (isToday) {
+      itemBgColor = isDark ? const Color(0xff2A2A2A) : AppColors.secondary;
+    }
+
     return Container(
       width: 65,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        color: isSelected
-            ? AppColors.primary
-            : isToday
-                ? AppColors.secondary
-                : Colors.white,
+        color: itemBgColor,
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
@@ -325,7 +444,11 @@ class _HabitPageState extends State<HabitPage> {
             day,
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : AppColors.primary,
+              color: isSelected
+                  ? Colors.white
+                  : isDark
+                      ? Colors.white70
+                      : AppColors.primary,
             ),
           ),
           const SizedBox(height: 8),
@@ -334,13 +457,17 @@ class _HabitPageState extends State<HabitPage> {
             backgroundColor: isSelected
                 ? Colors.white24
                 : isToday
-                    ? Colors.white
-                    : AppColors.secondary,
+                    ? (isDark ? Colors.white24 : Colors.white)
+                    : (isDark ? const Color(0xff2A2A2A) : AppColors.secondary),
             child: Text(
               date,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : AppColors.primary,
+                color: isSelected
+                    ? Colors.white
+                    : isDark
+                        ? Colors.white
+                        : AppColors.primary,
               ),
             ),
           ),
@@ -351,9 +478,17 @@ class _HabitPageState extends State<HabitPage> {
 
   /// CATEGORY CHIP
   Widget _buildCategoryChip({
+    required BuildContext context,
     required String title,
     bool selected = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Color chipBg = isDark ? const Color(0xff1E1E1E) : AppColors.secondary;
+    if (selected) {
+      chipBg = AppColors.primary;
+    }
+
     return Container(
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.symmetric(
@@ -361,14 +496,18 @@ class _HabitPageState extends State<HabitPage> {
         vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: selected ? AppColors.primary : AppColors.secondary,
+        color: chipBg,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w600,
-          color: selected ? Colors.white : AppColors.primary,
+          color: selected
+              ? Colors.white
+              : isDark
+                  ? Colors.white70
+                  : AppColors.primary,
         ),
       ),
     );
@@ -376,17 +515,20 @@ class _HabitPageState extends State<HabitPage> {
 
   /// HABIT TILE
   Widget _buildHabitTile({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
     required String schedule,
     required bool completed,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xff1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: completed
@@ -395,7 +537,7 @@ class _HabitPageState extends State<HabitPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -403,11 +545,11 @@ class _HabitPageState extends State<HabitPage> {
       ),
       child: Row(
         children: [
-          /// ICON
+          /// ICON DYNAMIC
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.secondary,
+              color: isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Icon(
@@ -426,25 +568,28 @@ class _HabitPageState extends State<HabitPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 1.8),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 1.5),
                 Text(
                   schedule,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white38 : Colors.grey,
                   ),
                 ),
               ],
@@ -460,7 +605,11 @@ class _HabitPageState extends State<HabitPage> {
               shape: BoxShape.circle,
               color: completed ? AppColors.primary : Colors.transparent,
               border: Border.all(
-                color: completed ? AppColors.primary : Colors.grey.shade300,
+                color: completed
+                    ? AppColors.primary
+                    : isDark
+                        ? Colors.white24
+                        : Colors.grey.shade300,
                 width: 2,
               ),
             ),
@@ -474,96 +623,6 @@ class _HabitPageState extends State<HabitPage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _BottomNavbar extends StatelessWidget {
-  final int currentIndex;
-
-  const _BottomNavbar({
-    required this.currentIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: (index) {
-        switch (index) {
-          /// HOME
-          case 0:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const HomePage(),
-              ),
-            );
-            break;
-
-          /// notification
-          case 1:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NotificationPage(),
-              ),
-            );
-            break;
-
-          /// Habit
-          case 2:
-            break;
-
-          /// TARGET
-          case 3:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const TargetPage(),
-              ),
-            );
-            break;
-
-          /// PROFILE
-          case 4:
-            Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (_) => const ProfilePage()));
-            break;
-        }
-      },
-      elevation: 0,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.white,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.grey,
-      selectedIconTheme: const IconThemeData(
-        size: 28,
-      ),
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_rounded),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.task_alt),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.track_changes_rounded),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_rounded),
-          label: '',
-        ),
-      ],
     );
   }
 }

@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_qiblah/flutter_qiblah.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
@@ -13,66 +11,78 @@ class QiblaPage extends StatefulWidget {
 }
 
 class _QiblaPageState extends State<QiblaPage> {
-  final _deviceSupport = FlutterQiblah.androidDeviceSensorSupport();
-
-  // geolocator
-  Future<void> checkLocationPermission() async {
-    LocationPermission permission;
-
-    permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-  }
+  final _locationStreamController = StreamController<LocationStatus>();
 
   @override
   void initState() {
     super.initState();
+    _checkLocation();
+  }
 
-    checkLocationPermission();
+  @override
+  void dispose() {
+    _locationStreamController.close();
+    super.dispose();
+  }
+
+  Future<void> _checkLocation() async {
+    final locationStatus = await FlutterQiblah.checkLocationStatus();
+    if (locationStatus.enabled && locationStatus.status.name == 'denied') {
+      await FlutterQiblah.requestPermissions();
+      final updatedStatus = await FlutterQiblah.checkLocationStatus();
+      _locationStreamController.sink.add(updatedStatus);
+    } else {
+      _locationStreamController.sink.add(locationStatus);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: AppColors.primary,
+            color: isDark ? Colors.white : AppColors.primary,
           ),
         ),
-        title: const Text(
+        title: Text(
           'Arah Kiblat',
           style: TextStyle(
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
         ),
       ),
-      body: FutureBuilder(
-        future: _deviceSupport,
+      body: StreamBuilder<LocationStatus>(
+        stream: _locationStreamController.stream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
+            _checkLocation();
             return const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(color: AppColors.primary),
             );
           }
 
-          if (snapshot.data == false) {
-            return const _QiblaErrorView(
-              message: 'Device tidak mendukung sensor compass',
+          final locationStatus = snapshot.data!;
+
+          if (locationStatus.enabled) {
+            return const _QiblaCompassView();
+          } else {
+            return _QiblaErrorView(
+              message:
+                  'Layanan GPS tidak aktif atau izin lokasi ditolak. Harap aktifkan GPS.',
+              onRetry: _checkLocation,
             );
           }
-
-          return const _QiblaCompassView();
         },
       ),
     );
@@ -84,12 +94,52 @@ class _QiblaCompassView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return StreamBuilder<QiblahDirection>(
       stream: FlutterQiblah.qiblahStream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
+
+        if (!snapshot.hasData) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xff1E1E1E)
+                          : Colors.grey.shade100,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.explore_rounded,
+                      size: 60,
+                      color: AppColors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Mencari arah kiblat...\nPastikan GPS aktif.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.grey,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
@@ -99,18 +149,18 @@ class _QiblaCompassView extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               /// INFO CARD
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                       blurRadius: 14,
                       offset: const Offset(0, 8),
                     ),
@@ -124,12 +174,12 @@ class _QiblaCompassView extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                     const SizedBox(height: 14),
-                    const Text(
+                    Text(
                       'Arah Kiblat',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.black,
+                        color: isDark ? Colors.white : AppColors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -145,7 +195,7 @@ class _QiblaCompassView extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
               /// COMPASS
               Expanded(
@@ -158,10 +208,13 @@ class _QiblaCompassView extends StatelessWidget {
                         height: 310,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.white,
+                          color: isDark
+                              ? const Color(0xff1E1E1E)
+                              : AppColors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color:
+                                  Colors.black.withOpacity(isDark ? 0.2 : 0.04),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -243,23 +296,23 @@ class _QiblaCompassView extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               /// BOTTOM TEXT
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary,
+                  color: isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Text(
+                child: Text(
                   'Pastikan perangkat berada di permukaan datar agar arah kiblat lebih akurat.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     height: 1.5,
                     fontSize: 14,
-                    color: AppColors.black,
+                    color: isDark ? Colors.white : AppColors.black,
                   ),
                 ),
               ),
@@ -273,13 +326,17 @@ class _QiblaCompassView extends StatelessWidget {
 
 class _QiblaErrorView extends StatelessWidget {
   final String message;
+  final VoidCallback? onRetry;
 
   const _QiblaErrorView({
     required this.message,
+    this.onRetry,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -295,12 +352,28 @@ class _QiblaErrorView extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
-                color: AppColors.black,
+                color: isDark ? Colors.white : AppColors.black,
                 fontWeight: FontWeight.w500,
               ),
             ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: onRetry,
+                child: const Text(
+                  'Coba Lagi',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ],
         ),
       ),

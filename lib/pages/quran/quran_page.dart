@@ -104,13 +104,16 @@ class _QuranPageState extends State<QuranPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // ============================================================
     // LOADING
     // ============================================================
 
     if (surahList.isEmpty) {
-      return const Scaffold(
-        body: Center(
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(
           child: CircularProgressIndicator(
             color: AppColors.primary,
           ),
@@ -119,14 +122,15 @@ class _QuranPageState extends State<QuranPage> {
     }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           "Al-Qur'an",
           style: TextStyle(
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -145,14 +149,20 @@ class _QuranPageState extends State<QuranPage> {
 
             TextField(
               onChanged: searchSurah,
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+              ),
               decoration: InputDecoration(
                 hintText: 'Cari Surah',
+                hintStyle: TextStyle(
+                  color: isDark ? Colors.white54 : Colors.black38,
+                ),
                 prefixIcon: const Icon(
                   Icons.search,
                   color: AppColors.primary,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).cardColor,
+                fillColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
                   borderSide: BorderSide.none,
@@ -204,7 +214,9 @@ class _QuranPageState extends State<QuranPage> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primary
-                            : AppColors.secondary,
+                            : (isDark
+                                ? const Color(0xff2A2A2A)
+                                : AppColors.secondary),
                         borderRadius: BorderRadius.circular(
                           12,
                         ),
@@ -212,7 +224,9 @@ class _QuranPageState extends State<QuranPage> {
                       child: Text(
                         category,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.primary,
+                          color: isSelected
+                              ? Colors.white
+                              : (isDark ? Colors.white70 : AppColors.primary),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -334,14 +348,23 @@ class SurahTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(
         bottom: 16,
       ),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? const Color(0xff1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -353,7 +376,7 @@ class SurahTile extends StatelessWidget {
             width: 45,
             height: 45,
             decoration: BoxDecoration(
-              color: AppColors.secondary,
+              color: isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
@@ -379,9 +402,10 @@ class SurahTile extends StatelessWidget {
               children: [
                 Text(
                   surahName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -399,9 +423,10 @@ class SurahTile extends StatelessWidget {
           // ARROW
           // ======================================================
 
-          const Icon(
+          Icon(
             Icons.arrow_forward_ios_rounded,
             size: 18,
+            color: isDark ? Colors.white54 : Colors.grey,
           ),
         ],
       ),

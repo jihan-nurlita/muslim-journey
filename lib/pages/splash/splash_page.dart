@@ -1,7 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:muslim_journey/pages/home/home_page.dart';
+import 'package:muslim_journey/pages/login/login_page.dart';
+import 'package:muslim_journey/pages/onboarding/onboarding_page.dart';
+import 'package:muslim_journey/services/auth_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -16,17 +18,30 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+    _navigateToNext(); // Menjalankan logika pengecekan AuthService & timer 3 detik
+  }
+
+  Future<void> _navigateToNext() async {
+    final bool hasSeenOnboarding = await AuthService.hasSeenOnboarding();
+    final bool isLoggedIn = await AuthService.isLoggedIn();
 
     _timer = Timer(
       const Duration(seconds: 3),
       () {
         if (!mounted) return;
 
+        Widget nextScreen;
+        if (!hasSeenOnboarding) {
+          nextScreen = const OnboardingPage();
+        } else if (!isLoggedIn) {
+          nextScreen = const LoginPage();
+        } else {
+          nextScreen = const HomePage();
+        }
+
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) {
-              return const HomePage();
-            },
+            pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
           ),
@@ -46,13 +61,13 @@ class _SplashPageState extends State<SplashPage> {
     const primary = Color(0xff2E7D32);
 
     return Scaffold(
-      backgroundColor: primary,
+      backgroundColor: primary, // Tampilan latar belakang hijau penuh
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              /// LOGO
+              /// LOGO BUKU (Desain Sebelumnya)
               Container(
                 height: 120,
                 width: 120,

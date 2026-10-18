@@ -79,6 +79,8 @@ class _DoaPageState extends State<DoaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
@@ -101,10 +103,10 @@ class _DoaPageState extends State<DoaPage> {
             size: 24,
           ),
         ),
-        title: const Text(
+        title: Text(
           "Doa Harian",
           style: TextStyle(
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -135,14 +137,20 @@ class _DoaPageState extends State<DoaPage> {
 
                 TextField(
                   onChanged: searchDoa,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                   decoration: InputDecoration(
                     hintText: "Cari doa...",
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white54 : AppColors.grey,
+                    ),
                     prefixIcon: const Icon(
                       Icons.search,
                       color: AppColors.primary,
                     ),
                     filled: true,
-                    fillColor: Theme.of(context).cardColor,
+                    fillColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 18,
                       horizontal: 14,
@@ -194,7 +202,9 @@ class _DoaPageState extends State<DoaPage> {
                           decoration: BoxDecoration(
                             color: isActive
                                 ? AppColors.primary
-                                : AppColors.secondary,
+                                : (isDark
+                                    ? const Color(0xff2A2A2A)
+                                    : AppColors.secondary),
                             borderRadius: BorderRadius.circular(
                               12,
                             ),
@@ -202,8 +212,11 @@ class _DoaPageState extends State<DoaPage> {
                           child: Text(
                             cat,
                             style: TextStyle(
-                              color:
-                                  isActive ? Colors.white : AppColors.primary,
+                              color: isActive
+                                  ? Colors.white
+                                  : (isDark
+                                      ? Colors.white70
+                                      : AppColors.primary),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -267,12 +280,14 @@ class DoaTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => DetailPage(
+            builder: (_) => DetailDoaPage(
               doa: doa,
             ),
           ),
@@ -284,8 +299,15 @@ class DoaTile extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: isDark ? const Color(0xff1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -297,7 +319,7 @@ class DoaTile extends StatelessWidget {
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: AppColors.secondary,
+                color: isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
                 borderRadius: BorderRadius.circular(
                   14,
                 ),
@@ -324,9 +346,10 @@ class DoaTile extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
             ),

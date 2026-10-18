@@ -4,6 +4,7 @@ import 'package:muslim_journey/core/constants/themes.dart';
 import 'package:muslim_journey/core/services/notification_service.dart';
 import 'package:muslim_journey/pages/splash/splash_page.dart';
 import 'package:muslim_journey/providers/prayer_provider.dart';
+import 'package:muslim_journey/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/target_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -33,14 +34,22 @@ class MuslimJourney extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => TargetProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Muslim Journey',
-        theme: lightTheme,
-        darkTheme: darkTheme,
-        themeMode: ThemeMode.light,
-        home: const SplashPage(),
+      // Dibungkus Consumer agar bisa mengambil nilai themeProvider.themeMode secara dinamis
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Muslim Journey',
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: themeProvider.themeMode, // Garis merah hilang di sini
+            home: const SplashPage(),
+          );
+        },
       ),
     );
   }

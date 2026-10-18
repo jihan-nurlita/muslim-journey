@@ -72,6 +72,8 @@ class _SholatPageState extends State<SholatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
@@ -94,10 +96,10 @@ class _SholatPageState extends State<SholatPage> {
             size: 24,
           ),
         ),
-        title: const Text(
+        title: Text(
           "Panduan Ibadah",
           style: TextStyle(
-            color: AppColors.black,
+            color: isDark ? Colors.white : AppColors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -128,14 +130,20 @@ class _SholatPageState extends State<SholatPage> {
 
                 TextField(
                   onChanged: searchDoa,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                   decoration: InputDecoration(
                     hintText: "Cari panduan & doa ibadah...",
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white54 : AppColors.grey,
+                    ),
                     prefixIcon: const Icon(
                       Icons.search,
                       color: AppColors.primary,
                     ),
                     filled: true,
-                    fillColor: Theme.of(context).cardColor,
+                    fillColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 18,
                       horizontal: 14,
@@ -182,14 +190,19 @@ class _SholatPageState extends State<SholatPage> {
                           decoration: BoxDecoration(
                             color: isActive
                                 ? AppColors.primary
-                                : AppColors.secondary,
+                                : (isDark
+                                    ? const Color(0xff1E1E1E)
+                                    : AppColors.secondary),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             cat,
                             style: TextStyle(
-                              color:
-                                  isActive ? Colors.white : AppColors.primary,
+                              color: isActive
+                                  ? Colors.white
+                                  : (isDark
+                                      ? Colors.white70
+                                      : AppColors.primary),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -237,6 +250,10 @@ class _SholatPageState extends State<SholatPage> {
 // SHOLAT TILE
 // =====================================================
 
+// =====================================================
+// SHOLAT TILE (Disesuaikan agar sama persis dengan Doa Harian)
+// =====================================================
+
 class SholatTile extends StatelessWidget {
   final String number;
   final String title;
@@ -251,6 +268,8 @@ class SholatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -268,27 +287,33 @@ class SholatTile extends StatelessWidget {
         ),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: isDark ? const Color(0xff1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
             // =============================================
-            // NOMOR
+            // KOTAK NOMOR (Disamakan dengan Doa Harian: Background Secondary, Teks Primary)
             // =============================================
-
             Container(
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
                 child: Text(
                   number,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -300,12 +325,11 @@ class SholatTile extends StatelessWidget {
             // =============================================
             // JUDUL
             // =============================================
-
             Expanded(
               child: Text(
                 title,
                 style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  color: isDark ? Colors.white : Colors.black87,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -313,9 +337,8 @@ class SholatTile extends StatelessWidget {
             ),
 
             // =============================================
-            // ARROW
+            // ARROW (Disamakan menggunakan warna primary/hijau)
             // =============================================
-
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 18,

@@ -1,20 +1,310 @@
+import 'dart:convert'; // <-- TAMBAHKAN INI DI BAGIAN ATAS
 import 'package:flutter/material.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
-import 'package:muslim_journey/pages/habit/habit_page.dart';
-import 'package:muslim_journey/pages/home/home_page.dart';
+import 'package:muslim_journey/pages/login/login_page.dart';
+import 'package:muslim_journey/pages/navigation/custom_bottom_navbar.dart';
 import 'package:muslim_journey/pages/notification/notification_page.dart';
-import 'package:muslim_journey/pages/target/target_page.dart';
+import 'package:muslim_journey/pages/profile/edit_profile_page.dart';
+import 'package:muslim_journey/providers/theme_provider.dart';
+import 'package:muslim_journey/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String userName = 'Memuat...';
+  String userEmail = 'Memuat...';
+  String? userImage;
+
+  int userLevel = 1;
+  int totalTarget = 0;
+  int userBadge = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // Mengambil data nama, email, dan foto secara aman
+  Future<void> _loadUserData() async {
+    try {
+      final name = await AuthService.getUserName();
+      final email = await AuthService.getUserEmail();
+      final image = await AuthService.getUserImage();
+
+      final prefs = await SharedPreferences.getInstance();
+
+      // Ambil data string JSON dari SharedPreferences
+      final String? savedListString = prefs.getString('custom_target_list');
+      int targetCount = 0;
+      if (savedListString != null && savedListString.isNotEmpty) {
+        final List<dynamic> decodedList = jsonDecode(savedListString);
+        targetCount = decodedList.length; // Hitung jumlah total target yang ada
+      }
+
+      final int streakCount = prefs.getInt('streak') ?? 0;
+
+      if (mounted) {
+        setState(() {
+          userName = name;
+          userEmail = email;
+          userImage = image;
+          totalTarget = targetCount; // Masukkan jumlah target yang benar
+          userLevel = (streakCount ~/ 5) + 1;
+          userBadge = streakCount >= 30 ? 3 : (streakCount >= 10 ? 2 : 1);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          userName = 'Pengguna';
+          userEmail = '';
+        });
+      }
+    }
+  }
+
+  // 1. Pop-up Reset Progress Habit Saja
+  void _showResetProgressDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Reset Progress Habit',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          content: const Text(
+            'Apakah kamu yakin ingin mereset seluruh target habit, riwayat, dan streak? Akun kamu akan tetap masuk.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Batal',
+                style: TextStyle(
+                  color: AppColors.grey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                final prefs = await SharedPreferences.getInstance();
+
+                // Hapus semua kemungkinan key data target/streak yang dipakai aplikasi
+                await prefs.remove('custom_target_list');
+                await prefs.remove('target_list'); // Tambahan jaga-jaga
+                await prefs.remove('daily_habit_progress');
+                await prefs.remove('streak');
+
+                // Panggil ulang _loadUserData() agar tampilan langsung berubah jadi 0!
+                await _loadUserData();
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('Progress habit dan streak berhasil direset.'),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Reset Progress',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 2. Pop-up Factory Reset Total
+  void _showFactoryResetDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Factory Reset',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          content: const Text(
+            'Apakah kamu yakin ingin mereset seluruh data aplikasi? Semua akun, target habit, dan riwayat akan dihapus total.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Batal',
+                style: TextStyle(
+                  color: AppColors.grey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('Seluruh data aplikasi berhasil direset total.'),
+                    ),
+                  );
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                    (route) => false,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Reset Total',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 3. Pop-up Peringatan Keluar (Logout)
+  void _showLogoutDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Keluar Aplikasi',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            'Apakah kamu yakin ingin keluar dari akun Habit Muslim?',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Batal',
+                style: TextStyle(
+                  color: AppColors.grey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await AuthService.logout();
+                if (mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginPage()),
+                    (route) => false,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Keluar',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    bool hasImage = userImage != null && userImage!.isNotEmpty;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      bottomNavigationBar: const _BottomNavbar(
-        currentIndex: 4,
-      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      bottomNavigationBar: const CustomBottomNavbar(currentIndex: 4),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(18),
@@ -40,52 +330,48 @@ class ProfilePage extends StatelessWidget {
                       height: 110,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 4,
-                        ),
-                        image: const DecorationImage(
-                          image: AssetImage(
-                            'assets/images/profile.png',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
+                        color: AppColors.secondary,
+                        border: Border.all(color: Colors.white, width: 4),
+                        image: hasImage
+                            ? DecorationImage(
+                                image: NetworkImage(userImage!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
+                      child: !hasImage
+                          ? const Icon(
+                              Icons.person_rounded,
+                              size: 65,
+                              color: Color(0xff2E7D5A),
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 18),
-                    const Text(
-                      'Aisha Noor',
-                      style: TextStyle(
+                    Text(
+                      userName,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Berusaha Menjadi hamba\nyang lebih baik',
-                      style: TextStyle(
+                    const SizedBox(height: 4),
+                    Text(
+                      userEmail,
+                      style: const TextStyle(
                         color: Colors.white70,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
+                        _statItem(title: 'Level', value: userLevel.toString()),
                         _statItem(
-                          title: 'Level',
-                          value: '12',
-                        ),
-                        _statItem(
-                          title: 'Target',
-                          value: '28',
-                        ),
-                        _statItem(
-                          title: 'Badge',
-                          value: '7',
-                        ),
+                            title: 'Target', value: totalTarget.toString()),
+                        _statItem(title: 'Badge', value: userBadge.toString()),
                       ],
                     ),
                   ],
@@ -96,33 +382,55 @@ class ProfilePage extends StatelessWidget {
 
               /// MENU
               _menuTile(
+                context: context,
                 icon: Icons.person_outline_rounded,
                 title: 'Edit Profile',
                 subtitle: 'Ubah data profile',
-                onTap: () {},
+                onTap: () async {
+                  final bool? isUpdated = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                  );
+                  if (isUpdated == true) {
+                    _loadUserData();
+                  }
+                },
               ),
 
               const SizedBox(height: 14),
 
               _menuTile(
+                context: context,
                 icon: Icons.notifications_none_rounded,
                 title: 'Notifikasi',
                 subtitle: 'Atur pengingat ibadah',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationPage(),
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 14),
 
-              _menuTile(
+              _menuSwitchTile(
+                context: context,
                 icon: Icons.dark_mode_outlined,
                 title: 'Tema Aplikasi',
-                subtitle: 'Light & dark mode',
-                onTap: () {},
+                subtitle: isDark ? 'Mode Gelap Aktif' : 'Mode Terang Aktif',
+                value: isDark,
+                onChanged: (val) {
+                  themeProvider.toggleTheme(val);
+                },
               ),
 
               const SizedBox(height: 14),
 
               _menuTile(
+                context: context,
                 icon: Icons.lock_outline_rounded,
                 title: 'Privasi',
                 subtitle: 'Keamanan akun aplikasi',
@@ -132,6 +440,7 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 14),
 
               _menuTile(
+                context: context,
                 icon: Icons.info_outline_rounded,
                 title: 'Tentang Aplikasi',
                 subtitle: 'Informasi aplikasi',
@@ -141,11 +450,34 @@ class ProfilePage extends StatelessWidget {
               const SizedBox(height: 14),
 
               _menuTile(
+                context: context,
+                icon: Icons.refresh_rounded,
+                title: 'Reset Progress Habit',
+                subtitle: 'Hapus data target & streak saja',
+                iconColor: AppColors.primary,
+                onTap: () => _showResetProgressDialog(context),
+              ),
+
+              const SizedBox(height: 14),
+
+              _menuTile(
+                context: context,
+                icon: Icons.lock_reset,
+                title: 'Factory Reset',
+                subtitle: 'Hapus seluruh data & akun aplikasi',
+                iconColor: AppColors.primary,
+                onTap: () => _showFactoryResetDialog(context),
+              ),
+
+              const SizedBox(height: 14),
+
+              _menuTile(
+                context: context,
                 icon: Icons.logout_rounded,
                 title: 'Keluar',
                 subtitle: 'Logout dari aplikasi',
-                iconColor: Colors.red,
-                onTap: () {},
+                iconColor: AppColors.primary,
+                onTap: () => _showLogoutDialog(context),
               ),
 
               const SizedBox(height: 24),
@@ -194,7 +526,7 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 0),
             ],
           ),
         ),
@@ -230,23 +562,26 @@ Widget _statItem({
 }
 
 Widget _menuTile({
+  required BuildContext context,
   required IconData icon,
   required String title,
   required String subtitle,
   required VoidCallback onTap,
   Color iconColor = AppColors.primary,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+
   return InkWell(
     borderRadius: BorderRadius.circular(24),
     onTap: onTap,
     child: Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
             blurRadius: 12,
             offset: const Offset(0, 8),
           ),
@@ -258,7 +593,7 @@ Widget _menuTile({
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.secondary,
+              color: isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Icon(
@@ -273,25 +608,26 @@ Widget _menuTile({
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: AppColors.grey,
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : AppColors.grey,
                     fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.chevron_right_rounded,
-            color: AppColors.grey,
+            color: isDark ? Colors.white54 : AppColors.grey,
           ),
         ],
       ),
@@ -299,96 +635,74 @@ Widget _menuTile({
   );
 }
 
-class _BottomNavbar extends StatelessWidget {
-  final int currentIndex;
+Widget _menuSwitchTile({
+  required BuildContext context,
+  required IconData icon,
+  required String title,
+  required String subtitle,
+  required bool value,
+  required ValueChanged<bool> onChanged,
+  Color iconColor = AppColors.primary,
+}) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  const _BottomNavbar({
-    required this.currentIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: (index) {
-        switch (index) {
-          /// HOME
-          case 0:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const HomePage(),
-              ),
-            );
-            break;
-
-          /// QURAN
-          case 1:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NotificationPage(),
-              ),
-            );
-            break;
-
-          /// Habit
-          case 2:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const HabitPage(),
-              ),
-            );
-            break;
-
-          /// TARGET
-          case 3:
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const TargetPage(),
-              ),
-            );
-            break;
-
-          /// PROFILE
-          case 4:
-            break;
-        }
-      },
-      elevation: 0,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.white,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.grey,
-      selectedIconTheme: const IconThemeData(
-        size: 28,
-      ),
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_rounded),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.task_alt),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.track_changes_rounded),
-          label: '',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_rounded),
-          label: '',
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+    decoration: BoxDecoration(
+      color: isDark ? const Color(0xff1E1E1E) : AppColors.white,
+      borderRadius: BorderRadius.circular(24),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+          blurRadius: 12,
+          offset: const Offset(0, 8),
         ),
       ],
-    );
-  }
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Icon(
+            icon,
+            color: iconColor,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: isDark ? Colors.white54 : AppColors.grey,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.primary,
+        ),
+      ],
+    ),
+  );
 }
