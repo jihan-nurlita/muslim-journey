@@ -331,7 +331,7 @@ class _HabitPageState extends State<HabitPage> {
                                   SnackBar(
                                     content: Text(
                                         '${target.title} berhasil dihapus'),
-                                    backgroundColor: Colors.redAccent,
+                                    backgroundColor: Colors.red,
                                   ),
                                 );
                               }
@@ -340,7 +340,7 @@ class _HabitPageState extends State<HabitPage> {
                               alignment: Alignment.centerLeft,
                               padding: const EdgeInsets.only(left: 20),
                               decoration: BoxDecoration(
-                                color: Colors.red.shade400,
+                                color: Colors.red,
                                 borderRadius: BorderRadius.circular(24),
                               ),
                               child: const Row(

@@ -583,7 +583,7 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
         ),
         iconTheme: IconThemeData(
-          color: isDark ? Colors.white : AppColors.black,
+          color: isDark ? Colors.white : AppColors.primary,
         ),
       ),
       floatingActionButton: FloatingActionButton(

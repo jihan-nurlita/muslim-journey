@@ -487,7 +487,7 @@ class _PrayerCard extends StatelessWidget {
     return Container(
       height: 202,
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [

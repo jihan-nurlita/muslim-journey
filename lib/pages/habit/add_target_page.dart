@@ -1017,7 +1017,7 @@ class _AddTargetPageState extends State<AddTargetPage> {
               ),
             ),
 
-            const SizedBox(height: 120),
+            const SizedBox(height: 0),
           ],
         ),
       ),

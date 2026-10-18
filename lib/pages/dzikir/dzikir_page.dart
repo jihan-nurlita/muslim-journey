@@ -128,7 +128,7 @@ class _DzikirPageState extends State<DzikirPage> {
           ),
         ),
         iconTheme: IconThemeData(
-          color: isDark ? Colors.white : AppColors.black,
+          color: isDark ? Colors.white : AppColors.primary,
         ),
       ),
       body: ListView.separated(
@@ -142,10 +142,13 @@ class _DzikirPageState extends State<DzikirPage> {
             key: ValueKey(dzikir.title + index.toString()),
             direction: DismissDirection.horizontal,
             confirmDismiss: (direction) async {
-              if (direction == DismissDirection.endToStart) {
+              // 🔥 SWIPE KANAN (Start to End) -> HAPUS (Warna Merah + Dialog)
+              if (direction == DismissDirection.startToEnd) {
                 return await showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
+                    backgroundColor:
+                        isDark ? const Color(0xff1E1E1E) : Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -182,7 +185,9 @@ class _DzikirPageState extends State<DzikirPage> {
                         child: const Text(
                           "Hapus",
                           style: TextStyle(
-                              color: Colors.white, fontWeight: FontWeight.bold),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -190,7 +195,8 @@ class _DzikirPageState extends State<DzikirPage> {
                 );
               }
 
-              if (direction == DismissDirection.startToEnd) {
+              // 🔥 SWIPE KIRI (End to Start) -> EDIT (Warna Biru)
+              if (direction == DismissDirection.endToStart) {
                 final currentIndex = index;
                 final currentDzikir = dzikirList[index];
 
@@ -207,40 +213,42 @@ class _DzikirPageState extends State<DzikirPage> {
                   setState(() {});
                 }
 
-                return false;
+                return false; // Jangan hapus item dari list
               }
 
               return false;
             },
             onDismissed: (direction) async {
-              if (direction == DismissDirection.endToStart) {
+              if (direction == DismissDirection.startToEnd) {
                 dzikirList.removeAt(index);
                 await saveDzikir();
                 setState(() {});
               }
             },
+            // Background Swipe Kanan (Hapus - Warna Merah)
             background: Container(
               padding: const EdgeInsets.only(left: 20),
               alignment: Alignment.centerLeft,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: const Icon(
-                Icons.edit,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-            secondaryBackground: Container(
-              padding: const EdgeInsets.only(right: 20),
-              alignment: Alignment.centerRight,
               decoration: BoxDecoration(
                 color: Colors.red,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: const Icon(
                 Icons.delete,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+            // Background Swipe Kiri (Edit - Warna Biru)
+            secondaryBackground: Container(
+              padding: const EdgeInsets.only(right: 20),
+              alignment: Alignment.centerRight,
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: const Icon(
+                Icons.edit,
                 color: Colors.white,
                 size: 30,
               ),
