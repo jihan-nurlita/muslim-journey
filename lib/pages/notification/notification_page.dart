@@ -195,6 +195,20 @@ class _NotificationPageState extends State<NotificationPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Handle Bar Bottom Sheet
+                    Center(
+                      child: Container(
+                        width: 48,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.grey.shade700
+                              : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15),
                     Center(
                       child: Text(
                         existingReminder == null
@@ -583,7 +597,7 @@ class _NotificationPageState extends State<NotificationPage> {
           ),
         ),
         iconTheme: IconThemeData(
-          color: isDark ? Colors.white : AppColors.primary,
+          color: isDark ? AppColors.primary : AppColors.primary,
         ),
       ),
       floatingActionButton: FloatingActionButton(

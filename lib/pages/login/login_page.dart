@@ -92,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const SizedBox(height: 20),
                           const Text(
-                            'Habit Muslim',
+                            'Muslim Journey',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 23,

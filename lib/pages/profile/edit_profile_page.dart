@@ -102,6 +102,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     'Pilih dari Galeri',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
+                      fontSize: 15,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
@@ -213,7 +214,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: isDark
-                              ? const Color(0xff2A2A2A)
+                              ? AppColors.secondary
                               : AppColors.secondary,
                           border:
                               Border.all(color: AppColors.primary, width: 3),
@@ -325,7 +326,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 ? 'Nama pengguna tidak boleh kosong'
                                 : null,
                         decoration: InputDecoration(
-                          labelText: 'Username / Nama Lengkap',
+                          labelText: 'Username',
                           labelStyle: TextStyle(
                             color: isDark ? Colors.white54 : AppColors.grey,
                           ),

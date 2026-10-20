@@ -163,12 +163,15 @@ class _AddTargetPageState extends State<AddTargetPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 52,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(20),
+              // Handle Bar Bottom Sheet
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -259,12 +262,15 @@ class _AddTargetPageState extends State<AddTargetPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 52,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(20),
+              // Handle Bar Bottom Sheet
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -360,12 +366,15 @@ class _AddTargetPageState extends State<AddTargetPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 52,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(20),
+              // Handle Bar Bottom Sheet
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -452,12 +461,16 @@ class _AddTargetPageState extends State<AddTargetPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 52,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(20),
+                // Handle Bar Bottom Sheet
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color:
+                          isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -869,6 +882,7 @@ class _AddTargetPageState extends State<AddTargetPage> {
             const SizedBox(height: 22),
 
             /// TARGET COUNT
+            /// TARGET COUNT
             Text(
               'Target Ibadah',
               style: TextStyle(
@@ -879,23 +893,31 @@ class _AddTargetPageState extends State<AddTargetPage> {
             const SizedBox(height: 14),
             Row(
               children: [
+                // 1. Container JUMLAH (Dikecilkan dengan flex: 1)
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: TextField(
                     controller: targetCountController,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                     style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87),
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
                     decoration: inputDecoration('Jumlah', isDark),
                   ),
                 ),
                 const SizedBox(width: 14),
+
+                // 2. Container SATUAN (Dipanjangkan dengan flex: 2)
                 Expanded(
+                  flex: 2,
                   child: GestureDetector(
                     onTap: openUnitModal,
                     child: Container(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 18,
+                      ),
                       decoration: BoxDecoration(
                         color:
                             isDark ? const Color(0xff1E1E1E) : AppColors.white,
@@ -918,6 +940,7 @@ class _AddTargetPageState extends State<AddTargetPage> {
                                 fontWeight: FontWeight.bold,
                                 color: isDark ? Colors.white : Colors.black87,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Icon(

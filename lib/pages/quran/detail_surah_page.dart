@@ -34,9 +34,6 @@ class _DetailScreenState extends State<DetailSurahPage> {
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
 
-  // Supaya scroll otomatis hanya dilakukan satu kali
-  bool _hasInitialScrolled = false;
-
   // ============================================================
   // SURAH
   // ============================================================
@@ -68,30 +65,6 @@ class _DetailScreenState extends State<DetailSurahPage> {
   // ============================================================
 
   Set<int> bookmarkedAyat = {};
-
-  // ============================================================
-  // SCROLL KE LAST READ
-  // ============================================================
-
-  void _scrollToLastAyat() {
-    if (lastAyat == null) return;
-
-    // Index list dimulai dari 0.
-    final targetIndex = lastAyat! - 1;
-
-    if (targetIndex < 0) return;
-
-    // Index 0 digunakan untuk header/detail Surah.
-    final indexToScroll = targetIndex + 1;
-
-    if (_itemScrollController.isAttached) {
-      _itemScrollController.scrollTo(
-        index: indexToScroll,
-        duration: const Duration(milliseconds: 700),
-        curve: Curves.easeInOutCubic,
-      );
-    }
-  }
 
   // ============================================================
   // LOAD BOOKMARKS
@@ -183,6 +156,9 @@ class _DetailScreenState extends State<DetailSurahPage> {
 
     currentAyat = 1;
 
+    // 🌟 Langsung ambil dari widget.lastAyat jika dikirim dari halaman Bookmark
+    lastAyat = widget.lastAyat;
+
     _audioPlayer = AudioPlayer();
 
     _audioPlayer.onPlayerComplete.listen((event) {
@@ -195,7 +171,10 @@ class _DetailScreenState extends State<DetailSurahPage> {
 
     _surahFuture = _getDetailSurah();
 
-    _loadLastAyat();
+    // Jika tidak dikirim via parameter, muat dari SharedPreferences
+    if (widget.lastAyat == null) {
+      _loadLastAyat();
+    }
 
     loadBookmarks();
   }
@@ -294,22 +273,6 @@ class _DetailScreenState extends State<DetailSurahPage> {
         final Surah surah = snapshot.data!;
 
         // ========================================================
-        // SCROLL AWAL
-        // ========================================================
-
-        if (snapshot.connectionState == ConnectionState.done &&
-            !_hasInitialScrolled &&
-            lastAyat != null) {
-          _hasInitialScrolled = true;
-
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-
-            _scrollToLastAyat();
-          });
-        }
-
-        // ========================================================
         // JUMLAH AYAT
         // ========================================================
 
@@ -332,8 +295,11 @@ class _DetailScreenState extends State<DetailSurahPage> {
             ),
             child: ScrollablePositionedList.builder(
               itemScrollController: _itemScrollController,
-
               itemPositionsListener: _itemPositionsListener,
+
+              // 🌟 Langsung posisikan list ke ayat tujuan sejak pertama kali dirender
+              initialScrollIndex:
+                  (lastAyat != null && lastAyat! > 0) ? lastAyat! : 0,
 
               // +1 untuk header/detail Surah
               itemCount: listAyatCount + 1,
@@ -626,7 +592,7 @@ class _DetailScreenState extends State<DetailSurahPage> {
               color: isDark ? const Color(0xffE2D8D8) : const Color(0xff5B4B4B),
               height: 2.2,
               fontWeight: FontWeight.w500,
-              fontSize: 23,
+              fontSize: 20,
             ),
             textAlign: TextAlign.right,
           ),
@@ -644,7 +610,7 @@ class _DetailScreenState extends State<DetailSurahPage> {
             style: GoogleFonts.poppins(
               color: isDark ? const Color(0xffA0B0A8) : const Color(0xff7E8D85),
               fontWeight: FontWeight.w500,
-              fontSize: 16,
+              fontSize: 15,
             ),
           ),
         ],

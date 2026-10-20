@@ -91,6 +91,8 @@ class _BookmarkTabState extends State<BookmarkTab> {
         final surah = item.surah;
         final ayatNomor = item.ayatNomor;
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
         return GestureDetector(
           onTap: () {
             // Navigasi dengan mengirimkan nomor surah DAN nomor ayat spesifik (lastAyat)
@@ -114,8 +116,15 @@ class _BookmarkTabState extends State<BookmarkTab> {
             ),
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
+              color: isDark ? const Color(0xff1E1E1E) : Colors.white,
               borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                  blurRadius: 12,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -124,7 +133,8 @@ class _BookmarkTabState extends State<BookmarkTab> {
                   width: 45,
                   height: 45,
                   decoration: BoxDecoration(
-                    color: AppColors.secondary,
+                    color:
+                        isDark ? const Color(0xff2A2A2A) : AppColors.secondary,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Center(

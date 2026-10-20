@@ -381,7 +381,7 @@ class _TargetPageState extends State<TargetPage> {
                   child: _buildSummaryCard(
                     title: "Total Selesai",
                     value: "${provider.completedCount}",
-                    icon: Icons.auto_awesome,
+                    icon: Icons.task_alt,
                     color: AppColors.primary,
                     isDark: isDark,
                   ),
