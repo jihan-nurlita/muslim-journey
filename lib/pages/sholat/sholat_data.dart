@@ -429,7 +429,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Istighfar Kanjeng Rosul",
-    kategori: ["Wudhu", "Doa-Doa"],
+    kategori: ["Doa-Doa"],
     arab:
         "اَللّٰهُمَّ اغْفِرْ لِيْ خَطِيْئَتِيْ وَجَهْلِيْ، وَإِسْرَافِيْ فِيْ أَمْرِيْ، وَمَا أَنْتَ أَعْلَمُ بِهِ مِنِّيْ، اَللّٰهُمَّ اغْفِرْ لِيْ جِدِّيْ وَهَزْلِيْ؛ وَخَطَئِيْ وَعَمْدِيْ؛ وَكُلُّ ذٰلِكَ عِنْدِيْ، اَللّٰهُمَّ اغْفِرْ لِيْ مَا قَدَّمْتُ وَمَا أَخَّرْتُ، وَمَا أَسْرَرْتُ وَمَا أَعْلَنْتُ، وَمَا أَنْتَ أَعْلَمُ بِهِ مِنِّيْ، أَنْتَ الْمُقَدِّمُ، وَأَنْتَ الْمُؤَخِّرُ لَا إِلٰهَ إِلَّا أَنْتَ وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللهِ",
     latin:
@@ -441,7 +441,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Doa Masuk Surga & Dijauhkan dari Panas Api Neraka",
-    kategori: ["Wudhu", "Doa-Doa"],
+    kategori: ["Doa-Doa"],
     arab:
         "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْجَنَّةَ، وَأَعُوذُ بِكَ مِنَ النَّارِ",
     latin: "Allāhumma innī as'alukal-jannah, wa a'ūdzu bika minan-nār.",
@@ -452,7 +452,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Doa Pengugur Dosa",
-    kategori: ["Wudhu", "Doa-Doa"],
+    kategori: ["Doa-Doa"],
     arab: "اللَّهُمَّ إِنَّكَ عَفُوٌّ كَرِيمٌ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي",
     latin: "Allāhumma innaka 'afuwwun karīmun tuhibbul-'afwa fa'fu 'annī.",
     arti:
@@ -462,7 +462,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Doa Sapu Jagat",
-    kategori: ["Wudhu", "Doa-Doa"],
+    kategori: ["Doa-Doa"],
     arab:
         "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
     latin:
@@ -474,7 +474,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Doa Nabi Musa",
-    kategori: ["Wudhu", "Doa-Doa"],
+    kategori: ["Doa-Doa"],
     arab: "رَبِّ إِنِّي لِمَا أَنْزَلْتَ إِلَيَّ مِنْ خَيْرٍ فَقِيرٌ",
     latin: "Rabbi innī limā anzalta ilayya min khairin faqīr.",
     arti:
@@ -484,7 +484,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Doa Minta Kesehatan, Keberlimpahan Harta, dan Kecukupan",
-    kategori: ["Wudhu", "Doa-Doa"],
+    kategori: ["Doa-Doa"],
     arab:
         "اللَّهُمَّ اغْفِرْ لِي، وَارْحَمْنِي، وَاهْدِنِي، وَعَافِنِي، وَارْزُقْنِي",
     latin: "Allāhummaghfir lī, warhamnī, wahdinī, wa 'āfinī, warzuqnī.",
@@ -496,7 +496,7 @@ List<DoaModel> doaList = [
   DoaModel(
     judul:
         "Pelindung dari Kecemasan, Stres, Ketakutan, dan Pelancar Hadapi Masalah",
-    kategori: ["Wudhu", "Doa-Doa"],
+    kategori: ["Doa-Doa"],
     arab:
         "حَسْبِيَ اللَّهُ لَا إِلٰهَ إِلَّا هُوَ ۖ عَلَيْهِ تَوَكَّلْتُ ۖ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ",
     latin:
@@ -508,7 +508,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Sholawat Munjiat",
-    kategori: [" Sholawat"],
+    kategori: ["Doa-Doa"],
     arab:
         "اَللّٰهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلاَةً تُنْجِيْنَا بِهَا مِنْ جَمِيْعِ الْأَهْوَالِ وَالْاٰفَاتِ وَتَقْضِيْ لَنَا بِهَا جَمِيعَ الْحَاجَاتِ وَتُطَهِّرُنَا بِهَا مِنْ جَمِيْعِ السَيِّئَاتِ وَتَرْفَعُنَا بِهَا عِنْدَكَ أَعْلَى الدَّرَجَاتِ وَتُبَلِّغُنَا بِهَـــا أَقْصَى الْغَايَاتِ مِنْ جَمِيْعِ الْخَيْرَاتِ فِى الْحَيَاةِ وَبَعْدَ الْمَمَـــاتِ",
     latin: "",
@@ -519,7 +519,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Sunnah Taubat",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab: "أُصَلِّي سُنَّةَ التَّوْبَةِ رَكْعَتَيْنِ لِلَّهِ تَعَالَى",
     latin: "Ushallī sunnatat-taubati rak‘ataini lillāhi ta‘ālā.",
     arti: "Aku berniat shalat sunnah Taubat dua rakaat karena Allah Ta‘ālā.",
@@ -529,7 +529,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Sunnah Hajat",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab: "أُصَلِّي سُنَّةَ الْحَاجَةِ رَكْعَتَيْنِ لِلَّهِ تَعَالَى",
     latin: "Ushallī sunnatal-ḥājati rak‘ataini lillāhi ta‘ālā.",
     arti: "Aku berniat shalat sunnah Hajat dua rakaat karena Allah Ta‘ālā.",
@@ -539,7 +539,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Sunnah Tasbih",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab: "أُصَلِّي سُنَّةَ التَّسْبِيحِ أَرْبَعَ رَكَعَاتٍ لِلَّهِ تَعَالَى",
     latin: "Ushallī sunnatat-tasbīḥi arba‘a raka‘ātin lillāhi ta‘ālā.",
     arti: "Aku berniat shalat sunnah Tasbih empat rakaat karena Allah Ta‘ālā.",
@@ -548,7 +548,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Tahajud",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab: "أُصَلِّي سُنَّةَ التَّهَجُّدِ رَكْعَتَيْنِ لِلَّهِ تَعَالَى",
     latin: "Ushallī sunnatat-tahajjudi rak'ataini lillāhi ta'ālā.",
     arti: "Aku berniat shalat sunnah Tahajud dua rakaat karena Allah Ta'ala.",
@@ -631,7 +631,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Istikharah",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab: "أُصَلِّي سُنَّةَ الاِسْتِخَارَةِ رَكْعَتَيْنِ لِلَّهِ تَعَالَى\n\n"
         "Bacaan Rakaat Pertama:\n"
         "وَوَرَبُّكَ يَخْلُقُ مَا يَشَاءُ وَيَخْتَارُ مَا كَانَ لَهُمُ الْخِيَرَةُ سُبْحَانَ اللَّهِ وَتَعَالَى عَمَّا يُشْرِكُونَ\n\n"
@@ -685,7 +685,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Sunnah Dhuha",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab: "أُصَلِّي سُنَّةَ الضُّحَى رَكْعَتَيْنِ لِلَّهِ تَعَالَى",
     latin: "Ushallī sunnataḍ-ḍuḥā rak‘ataini lillāhi ta‘ālā.",
     arti: "Aku berniat shalat sunnah Dhuha dua rakaat karena Allah Ta‘ālā.",
@@ -803,7 +803,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Istisqa",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab:
         "أُصَلِّي سُنَّةَ الاِسْتِسْقَاءِ رَكْعَتَيْنِ مُسْتَقْبِلَ الْكَعْبَةِ لِلَّهِ تَعَالَى\n\n"
         "Bacaan Istighfar:\n"
@@ -831,7 +831,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Gerhana Matahari (Kusuf)",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab:
         "أُصَلِّي سُنَّةَ الْكُسُوفِ الشَّمْسِ رَكْعَتَيْنِ مُسْتَقْبِلَ الْكَعْبَةِ لِلَّهِ تَعَالَى",
     latin:
@@ -846,7 +846,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Shalat Gerhana Bulan (Khusuf)",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab:
         "أُصَلِّي سُنَّةَ الْخُسُوفِ الْقَمَرِ رَكْعَتَيْنِ مُسْتَقْبِلَ الْكَعْبَةِ لِلَّهِ تَعَالَى",
     latin:
@@ -863,7 +863,7 @@ List<DoaModel> doaList = [
   ),
   DoaModel(
     judul: "Niat Sholat Awwabin",
-    kategori: ["Sholat", "Doa-Doa"],
+    kategori: ["Sholat"],
     arab:
         "نَوَيْتُ صَلَاةَ سُنَّةِ الْأَوَّابِينَ رَكْعَتَيْنِ لِلّٰهِ تَعَالَى",
     latin: "Nawaitu ṣalāta sunnatil-awwābīna rak‘ataini lillāhi ta‘ālā.",

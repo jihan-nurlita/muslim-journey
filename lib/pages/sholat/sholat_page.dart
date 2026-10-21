@@ -203,7 +203,7 @@ class _SholatPageState extends State<SholatPage> {
                                   : (isDark
                                       ? Colors.white70
                                       : AppColors.primary),
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muslim_journey/core/constants/colors.dart';
 import 'package:muslim_journey/pages/doa/detail_doa_page.dart';
-
 import 'doa_data.dart';
 
 class DoaPage extends StatefulWidget {
@@ -217,7 +216,7 @@ class _DoaPageState extends State<DoaPage> {
                                   : (isDark
                                       ? Colors.white70
                                       : AppColors.primary),
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
